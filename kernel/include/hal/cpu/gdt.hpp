@@ -4,8 +4,9 @@
     * Created 02/09/23 DanielH
 */
 
+#include <stdint.h>
+
 namespace Kernel::CPU::GDT {
-    #include <stdint.h>
 
     struct SegmentDescriptor
     {
