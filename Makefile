@@ -75,8 +75,14 @@ iso: $(kbin)
 	@rm -rf iso_root
 
 run: iso
-	qemu-system-x86_64 -cdrom root.iso -d int -D kernel.log
+	qemu-system-x86_64 -cdrom root.iso -d int -D qemu.log
 
 clean:
 	-@rm $(kobj)
 	-@rm kernel.elf -f
+
+bootstrap:
+	@bash bootstrap.sh
+
+unbootstrap:
+	@rm -rf kernel/src/external_libs/flanterm

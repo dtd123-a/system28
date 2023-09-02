@@ -20,8 +20,6 @@ extern "C"
         Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
         Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initialized\n");
 
-        asm ("int $0xc");
-
         while (true) {
             Kernel::CPU::Halt();
         }
