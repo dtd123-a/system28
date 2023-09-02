@@ -6,6 +6,7 @@
 #include <early/bootloader_data.hpp>
 #include <terminal/terminal.hpp>
 #include <hal/cpu.hpp>
+#include <mm/pmm.hpp>
 
 extern "C"
 {
@@ -18,8 +19,9 @@ extern "C"
 
         Kernel::CPU::Initialize();
         Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
-        Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initialized\n");
+        Kernel::Mem::InitializePMM(bootloader_data.memmap);
 
+        Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initialized\n");
         while (true) {
             Kernel::CPU::Halt();
         }

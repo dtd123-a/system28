@@ -1,10 +1,4 @@
-/*
-    * required_utils.c
-    * Implements things required by external libraries
-    * Created 01/09/23
-*/
-
-void* memcpy(char* destination, char* source, int n)
+extern "C" void *memcpy(char *destination, char *source, int n)
 {
     int i = 0;
 
@@ -17,7 +11,7 @@ void* memcpy(char* destination, char* source, int n)
     return destination;
 }
 
-void* memset(char* destination, int val, int n)
+extern "C" void *memset(char* destination, int val, int n)
 {
     int i = 0;
 
