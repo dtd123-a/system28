@@ -16,11 +16,12 @@ extern "C"
         limine_framebuffer fb = *bootloader_data.fbData.framebuffers[0];
         uint32_t *fb_ptr = (uint32_t *)fb.address;
 
+        Kernel::CPU::Initialize();
         Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
-        Kernel::Lib::Print("Hello, World!");
+        Kernel::Print("Hello, World!");
 
         while (true) {
-            Kernel::HAL::CPU::Halt();
+            Kernel::CPU::Halt();
         }
     }
 }

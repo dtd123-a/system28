@@ -12,7 +12,5 @@ namespace Kernel {
         void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch);
     }
 
-    namespace Lib {
-        void Print(const char* string);
-    }
+    void Print(const char* string);
 }

@@ -11,26 +11,22 @@
 
 flanterm_context* fb_ctx = nullptr;
 
-namespace Kernel {
-    namespace Init {
-        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch) {
-            fb_ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);
-        }
-    }
-}
-
 void PutChar(char c)
 {
     flanterm_write(fb_ctx, &c, 1);
 }
 
 namespace Kernel {
-    namespace Lib {
-        void Print(const char *string) {
-            while (*string != '\0') {
-                PutChar(*string);
-                string++;
-            }
+    namespace Init {
+        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch) {
+            fb_ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);
+        }
+    }
+
+    void Print(const char *string) {
+        while (*string != '\0') {
+            PutChar(*string);
+            string++;
         }
     }
 }

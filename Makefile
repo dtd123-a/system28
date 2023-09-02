@@ -37,11 +37,10 @@ ASMFLAGS += \
     -Wall \
     -f elf64
 
-
 kcsources = $(call rwildcard,kernel/src,*.cpp)
 kcsources_c = $(call rwildcard,kernel/src,*.c)
 kcsourcesnasm = $(call rwildcard,kernel/src,*.asm)
-kobj = $(kcsources:.cpp=.o) $(kcsources_c:.c=.o) $(kcsourcesnasm:.asm=.o)
+kobj = $(kcsourcesnasm:.asm=.o) $(kcsources:.cpp=.o) $(kcsources_c:.c=.o)
 
 all: $(kbin) limine
 
