@@ -19,11 +19,19 @@ static volatile struct limine_memmap_request memmap_request = {
     .response = 0
 };
 
+static volatile struct limine_smp_request smp_request = {
+    .id = LIMINE_SMP_REQUEST,
+    .revision = 0,
+    .response = 0,
+    .flags = 0 
+};
+
 BootloaderData GetBootloaderData()
 {
     BootloaderData ret = {
         .fbData = *framebuffer_request.response,
-        .memmap = *memmap_request.response
+        .memmap = *memmap_request.response,
+        .smp = *smp_request.response
     };
 
     return ret;

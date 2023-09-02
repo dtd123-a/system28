@@ -12,5 +12,6 @@ namespace Kernel::CPU {
         Kernel::CPU::GDT::Initialize();
         Kernel::CPU::Interrupts::Initialize();
         /* Other CPU initialization stuff should go here */
+        /* TODO Probably SMP/multicore here somewhere */
     }
 }

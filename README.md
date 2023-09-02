@@ -5,7 +5,7 @@ A rewrite of System/14 meant to be half as crappy. This time I am using C, C++ a
 - [x] Basic CPU HAL (GDT, CPU functions, etc)
 - [x] PMM (take it from System/14, less crappy due to refactor?)
 - [x] Interrupts
-- [ ] SMP (Symmetric Multi-Processing)
+- [x] SMP (Symmetric Multi-Processing)
 - [ ] LAPIC and I/O APIC
 - [ ] Heap allocation
 - [ ] Timer

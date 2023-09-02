@@ -11,6 +11,7 @@ struct BootloaderData
 {
     limine_framebuffer_response fbData;
     limine_memmap_response memmap;
+    limine_smp_response smp;
 };
 
 BootloaderData GetBootloaderData();

@@ -75,7 +75,7 @@ iso: $(kbin)
 	@rm -rf iso_root
 
 run: iso
-	qemu-system-x86_64 -cdrom root.iso -d int -D qemu.log
+	qemu-system-x86_64 -smp 4 -cdrom root.iso -d int -D qemu.log
 
 clean:
 	-@rm $(kobj)
