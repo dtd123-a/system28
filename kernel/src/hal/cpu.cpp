@@ -5,6 +5,7 @@
 */
 #include <hal/cpu/gdt.hpp>
 #include <hal/cpu/interrupt/idt.hpp>
+#include <hal/cpu.hpp>
 
 namespace Kernel::CPU {
     void Initialize()
@@ -14,4 +15,12 @@ namespace Kernel::CPU {
         /* Other CPU initialization stuff should go here */
         /* TODO Probably SMP/multicore here somewhere */
     }
+}
+/* For C code */
+extern "C" void CPUNop() {
+    Kernel::CPU::NoOp();
+}
+
+extern "C" void CPUHlt() {
+    Kernel::CPU::Halt();
 }

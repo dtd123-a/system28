@@ -9,12 +9,16 @@
 #include <terminal/terminal.hpp>
 #include <external_libs/flanterm/flanterm.h>
 #include <external_libs/flanterm/backends/fb.h>
+#include <hal/spinlock.hpp>
 
 flanterm_context* fb_ctx = nullptr;
 
+SPINLOCK_CREATE(PutCharLock);
 void PutChar(char c)
 {
+    SpinlockAquire(&PutCharLock);
     flanterm_write(fb_ctx, &c, 1);
+    SpinlockRelease(&PutCharLock);
 }
 
 static char* itoa(int num, char* str, int base, int n)
@@ -101,8 +105,10 @@ namespace Kernel {
         }
     }
 
+    SPINLOCK_CREATE(LogSpinlock);
     void Log(KernelLogType type, const char *format, ...)
     {
+        SpinlockAquire(&LogSpinlock);
         switch (type) {
             case KERNEL_LOG_SUCCESS:
                 Print("[\x1B[32m OK \x1B[0m] ");
@@ -149,5 +155,6 @@ namespace Kernel {
         }
 
         va_end(args);
+        SpinlockRelease(&LogSpinlock);
     }
 }

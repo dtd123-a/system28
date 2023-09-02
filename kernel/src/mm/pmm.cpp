@@ -1,3 +1,9 @@
+/*
+    * pmm.cpp
+    * Physical memory manager
+    * Created 02/09/2023
+*/
+
 #include <limine.h>
 #include <stddef.h>
 #include <terminal/terminal.hpp>
@@ -53,7 +59,7 @@ namespace Kernel::Mem {
             if (FrameList[i].free) {
                 FrameList[i].free = false;
 
-                ::memset((char*)FrameList[i].ptr, 0, 0x1000);
+                memset((char*)FrameList[i].ptr, 0, 0x1000);
                 return FrameList[i].ptr;
             }
         }

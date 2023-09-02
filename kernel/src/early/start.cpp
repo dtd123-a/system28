@@ -9,6 +9,27 @@
 #include <mm/pmm.hpp>
 #include <hal/cpu/smp/smp.hpp>
 
+void _test() {
+    Kernel::CPU::Initialize();
+    while(1) {
+        Kernel::Log(KERNEL_LOG_PRINTONLY, "Hello from CPU 1\n");
+    }
+}
+
+void _test2() {
+    Kernel::CPU::Initialize();
+    while(1) {
+        Kernel::Log(KERNEL_LOG_PRINTONLY, "Hello from CPU 2\n");
+    }
+}
+
+void _test3() {
+    Kernel::CPU::Initialize();
+    while(1) {
+        Kernel::Log(KERNEL_LOG_PRINTONLY, "Hello from CPU 3\n");
+    }
+}
+
 extern "C"
 {
     void _start()
@@ -25,6 +46,10 @@ extern "C"
         
         Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initialized\n");
         Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", bootloader_data.smp.cpu_count);
+
+        Kernel::CPU::CPUJump(1, (void*)&_test);
+        Kernel::CPU::CPUJump(2, (void*)&_test2);
+        Kernel::CPU::CPUJump(3, (void*)&_test3);
 
 
         while (true) {
