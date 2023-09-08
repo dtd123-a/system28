@@ -31,10 +31,6 @@ static PageTable *GetNextLevel(PageTable *current_level, size_t entry) {
     } else return (PageTable *)(uintptr_t)(current_level->entries[entry].PhysicalAddr << 12);
 }
 
-namespace Kernel::Mem {
-    void PMMSetupForVMM();
-}
-
 namespace Kernel::VMM {
     /* Large page is 2MiB */
     bool MemoryMap(PageTable *target_pagemap, uintptr_t virt, uintptr_t phys, bool largePage) {
