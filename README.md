@@ -6,6 +6,7 @@ A rewrite of System/14 meant to be half as crappy. This time I am using C, C++ a
 - [x] PMM (take it from System/14, less crappy due to refactor?)
 - [x] Interrupts
 - [x] SMP (Symmetric Multi-Processing)
+- [x] Virtual memory (paging)
 - [ ] LAPIC and I/O APIC
 - [ ] Heap allocation
 - [ ] Timer

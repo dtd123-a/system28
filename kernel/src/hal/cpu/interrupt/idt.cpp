@@ -2,26 +2,21 @@
 #include <hal/cpu.hpp>
 #include <terminal/terminal.hpp>
 
-extern "C" void ExceptionHandler();
-extern "C" void EH_Stage2(Kernel::CPU::Interrupts::Registers* registers)
+using namespace Kernel::CPU;
+
+__attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters* registers)
 {
-    Kernel::Log(KERNEL_LOG_FAIL, "Exception interrupt caught in kernel.\n");
-    Kernel::Log(KERNEL_LOG_PRINTONLY, "IP = 0x%x, SP = 0x%x\nCS = 0x%x, Flags = 0x%x, SS = 0x%x\nRAX = 0x%x, RBX = 0x%x, RCX = 0x%x, RDI = 0x%x\n",
-        registers->rip,
-        registers->rsp,
-        registers->cs,
-        registers->rflags,
-        registers->ss,
-        registers->rax,
-        registers->rbx,
-        registers->rcx,
-        registers->rdi);
-
-
-    Kernel::CPU::ClearInterrupts();
+    Kernel::Log(KERNEL_LOG_FAIL, "** STOP !! **\n");
+    Kernel::Log(KERNEL_LOG_FAIL, "CPU Exception in kernel!!\n");
+    Kernel::Log(KERNEL_LOG_FAIL, "{IP=0x%x, CS=0x%x, Flags=0x%x, SP=0x%x, SS=0x%x}\n",
+    registers->ip,
+    registers->cs,
+    registers->flags,
+    registers->sp,
+    registers->ss);
 
     while (true) {
-        Kernel::CPU::Halt();    
+        Halt();    
     }
 }
 

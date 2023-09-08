@@ -24,7 +24,8 @@ CPPFLAGS += \
     -mno-sse2 \
     -mno-red-zone \
     -mcmodel=kernel \
-    -Ikernel/include
+    -Ikernel/include \
+    -g
 
 LDFLAGS += \
     -nostdlib \
@@ -75,7 +76,10 @@ iso: $(kbin)
 	@rm -rf iso_root
 
 run: iso
-	qemu-system-x86_64 -smp 4 -cdrom root.iso -d int -D qemu.log
+	qemu-system-x86_64 -smp 4 -cdrom root.iso -d int -D qemu.log -no-shutdown -no-reboot
+
+rungdb: iso
+	qemu-system-x86_64 -smp 4 -cdrom root.iso -d int -D qemu.log -no-shutdown -no-reboot -s -S
 
 clean:
 	-@rm $(kobj)

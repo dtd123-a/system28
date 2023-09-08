@@ -8,6 +8,8 @@
 #include <hal/cpu.hpp>
 #include <mm/pmm.hpp>
 #include <hal/cpu/smp/smp.hpp>
+#include <hal/vmm.hpp>
+#include <mm/mem.hpp>
 
 void _test() {
     Kernel::CPU::Initialize();
@@ -43,14 +45,14 @@ extern "C"
         Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
         Kernel::Mem::InitializePMM(bootloader_data.memmap);
         Kernel::CPU::SMPSetup(*bootloader_data.smp.cpus);
-        
+
         Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initialized\n");
         Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", bootloader_data.smp.cpu_count);
-
+        Kernel::VMM::InitPaging(bootloader_data.memmap, bootloader_data.kernel_addr, bootloader_data.hhdm_response.offset);
+        
         Kernel::CPU::CPUJump(1, (void*)&_test);
         Kernel::CPU::CPUJump(2, (void*)&_test2);
         Kernel::CPU::CPUJump(3, (void*)&_test3);
-
 
         while (true) {
             Kernel::CPU::Halt();

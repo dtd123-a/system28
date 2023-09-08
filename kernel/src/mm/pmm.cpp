@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <terminal/terminal.hpp>
 #include <mm/mem.hpp>
+#include <hal/vmm.hpp>
 
 namespace Kernel::Mem {
     struct Page {
@@ -16,6 +17,7 @@ namespace Kernel::Mem {
     };
 
     struct Page* FrameList = {0};
+    uint32_t FrameListSize = 0;
     uint32_t LargestMemSegSize = 0;
 
     void InitializePMM(limine_memmap_response mmap) {
@@ -30,6 +32,7 @@ namespace Kernel::Mem {
                         largestEntryLength = mmap.entries[i]->length;
                         largestEntry = *mmap.entries[i];
                     }
+                    break;
                 }
             }
         }
@@ -41,8 +44,11 @@ namespace Kernel::Mem {
 
         FrameList = (struct Page *)largestEntry.base;
         uintptr_t nextAddr = ALIGN_UP(largestEntry.base + (sizeof(Page) * (largestEntry.length / 0x1000)), 0x1000);
+        FrameListSize = nextAddr - largestEntry.base;
 
-        for (size_t i = 0; i < largestEntry.length / 0x1000; i++) {
+        LargestMemSegSize = largestEntry.length - FrameListSize;
+
+        for (size_t i = 0; i < LargestMemSegSize / 0x1000; i++) {
             Page page = {
                 .ptr = (void *)nextAddr,
                 .free = true
@@ -50,21 +56,23 @@ namespace Kernel::Mem {
             FrameList[i] = page;
             nextAddr += 0x1000;
         }
-
-        LargestMemSegSize = largestEntry.length;
     }
 
-    void* AllocatePage() {
+    void *AllocatePageExt(bool DoMemset) {
         for (size_t i = 0; i < LargestMemSegSize / 0x1000; i++) {
             if (FrameList[i].free) {
                 FrameList[i].free = false;
-
-                memset((char*)FrameList[i].ptr, 0, 0x1000);
+                
+                if (DoMemset) memset((void*)FrameList[i].ptr, 0, 0x1000);
                 return FrameList[i].ptr;
             }
         }
 
         return nullptr;
+    }
+
+    void *AllocatePage() {
+        return AllocatePageExt(true);
     }
 
     void FreePage(void *addr) {
@@ -74,4 +82,4 @@ namespace Kernel::Mem {
             }
         }
     }
-};
+}

@@ -26,12 +26,26 @@ static volatile struct limine_smp_request smp_request = {
     .flags = 0 
 };
 
+static volatile struct limine_kernel_address_request kaddr_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0,
+    .response = 0
+};
+
+static volatile struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST,
+    .revision = 0,
+    .response = 0
+};
+
 BootloaderData GetBootloaderData()
 {
     BootloaderData ret = {
         .fbData = *framebuffer_request.response,
         .memmap = *memmap_request.response,
-        .smp = *smp_request.response
+        .smp = *smp_request.response,
+        .kernel_addr = *kaddr_request.response,
+        .hhdm_response = *hhdm_request.response
     };
 
     return ret;
