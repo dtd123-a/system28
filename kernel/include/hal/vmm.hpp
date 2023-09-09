@@ -1,5 +1,11 @@
+/*
+    * vmm.hpp
+    * Implements virtual memory (paging).
+    * Created 07/09/23 DanielH
+*/
 #pragma once
 #include <stdint.h>
+#include <limine.h>
 
 struct PageTableEntry {
     uintptr_t Present : 1;

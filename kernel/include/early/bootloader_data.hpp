@@ -14,6 +14,7 @@ struct BootloaderData
     limine_smp_response smp;
     limine_kernel_address_response kernel_addr;
     limine_hhdm_response hhdm_response;
+    limine_rsdp_response rsdp_response;
 };
 
 BootloaderData GetBootloaderData();

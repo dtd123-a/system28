@@ -38,6 +38,12 @@ static volatile struct limine_hhdm_request hhdm_request = {
     .response = 0
 };
 
+static volatile struct limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST,
+    .revision = 0,
+    .response = 0  
+};
+
 BootloaderData GetBootloaderData()
 {
     BootloaderData ret = {
@@ -45,7 +51,8 @@ BootloaderData GetBootloaderData()
         .memmap = *memmap_request.response,
         .smp = *smp_request.response,
         .kernel_addr = *kaddr_request.response,
-        .hhdm_response = *hhdm_request.response
+        .hhdm_response = *hhdm_request.response,
+        .rsdp_response = *rsdp_request.response
     };
 
     return ret;
