@@ -11,27 +11,6 @@
 #include <hal/vmm.hpp>
 #include <mm/mem.hpp>
 
-void _test() {
-    Kernel::CPU::Initialize();
-    while(1) {
-        Kernel::Log(KERNEL_LOG_PRINTONLY, "Hello from CPU 1\n");
-    }
-}
-
-void _test2() {
-    Kernel::CPU::Initialize();
-    while(1) {
-        Kernel::Log(KERNEL_LOG_PRINTONLY, "Hello from CPU 2\n");
-    }
-}
-
-void _test3() {
-    Kernel::CPU::Initialize();
-    while(1) {
-        Kernel::Log(KERNEL_LOG_PRINTONLY, "Hello from CPU 3\n");
-    }
-}
-
 extern "C"
 {
     void _start()
@@ -49,10 +28,6 @@ extern "C"
         Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initialized\n");
         Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", bootloader_data.smp.cpu_count);
         Kernel::VMM::InitPaging(bootloader_data.memmap, bootloader_data.kernel_addr, bootloader_data.hhdm_response.offset);
-        
-        Kernel::CPU::CPUJump(1, (void*)&_test);
-        Kernel::CPU::CPUJump(2, (void*)&_test2);
-        Kernel::CPU::CPUJump(3, (void*)&_test3);
 
         while (true) {
             Kernel::CPU::Halt();

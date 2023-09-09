@@ -34,7 +34,13 @@ static PageTable *GetNextLevel(PageTable *current_level, size_t entry) {
 namespace Kernel::VMM {
     /* Large page is 2MiB */
     bool MemoryMap(PageTable *target_pagemap, uintptr_t virt, uintptr_t phys, bool largePage) {
-        if (!target_pagemap) target_pagemap = kernelPML4;
+        if (!target_pagemap) {
+            if (!kernelPML4) {
+                return false;
+            }
+
+            target_pagemap = kernelPML4;
+        }
 
         size_t pml4_entry = (virt & ((uint64_t)0x1FF << 39)) >> 39;
         size_t pml3_entry = (virt & ((uint64_t)0x1FF << 30)) >> 30;

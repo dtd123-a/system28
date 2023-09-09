@@ -24,8 +24,7 @@ CPPFLAGS += \
     -mno-sse2 \
     -mno-red-zone \
     -mcmodel=kernel \
-    -Ikernel/include \
-    -g
+    -Ikernel/include
 
 LDFLAGS += \
     -nostdlib \
@@ -71,6 +70,8 @@ iso: $(kbin)
 	@cp kernel.elf kernel/misc/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/
 	@xorriso -as mkisofs -b limine-bios-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
+		--efi-boot limine-uefi-cd.bin \
+		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		iso_root -o root.iso
 	@limine/limine bios-install root.iso
 	@rm -rf iso_root

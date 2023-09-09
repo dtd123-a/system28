@@ -97,12 +97,15 @@ namespace Kernel {
         }
     }
 
+    SPINLOCK_CREATE(PrintLock);
     void Print(const char *string)
     {
+        SpinlockAquire(&PrintLock);
         while (*string != '\0') {
             PutChar(*string);
             string++;
         }
+        SpinlockRelease(&PrintLock);
     }
 
     SPINLOCK_CREATE(LogSpinlock);
@@ -118,6 +121,9 @@ namespace Kernel {
                 break;
             case KERNEL_LOG_INFO:
                 Print("[\x1B[94m INFO \x1B[0m] ");
+                break;
+            case KERNEL_LOG_DEBUG:
+                Print("[\x1b[38;5;48m DEBUG \x1B[0m] ");
                 break;
             default:
                 break;
