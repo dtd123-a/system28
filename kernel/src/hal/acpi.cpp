@@ -69,6 +69,8 @@ namespace Kernel::ACPI {
             uintptr_t entry = RSDTTableStart + (i * 4);
             uint32_t *entryPtr = (uint32_t *)entry;
             SDTHeader *header = (SDTHeader *)(uintptr_t)*entryPtr;
+            
+            MemoryMapACPITable(header);
 
             if (strncmp(Signature, (const char*)header->Signature, 4) == 0) {
                 MemoryMapACPITable(header);

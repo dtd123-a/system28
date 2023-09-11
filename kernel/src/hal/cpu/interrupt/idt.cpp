@@ -89,6 +89,9 @@ namespace Kernel::CPU::Interrupts {
         IDTPtr.Limit = 0xfff;
         IDTPtr.Addr = (uint64_t)&IDT;
 
+        // TODO we also need to remap the PIC so if it gives spurious interrupts in the future
+        //      it doesn't clash with exception interrupts.
+
         DisablePIC();
 
         /* Load IDT */
