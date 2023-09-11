@@ -1,8 +1,11 @@
 #include <hal/cpu/interrupt/idt.hpp>
 #include <hal/cpu.hpp>
 #include <terminal/terminal.hpp>
+#include <hal/cpu/interrupt/lapic.hpp>
 
 using namespace Kernel::CPU;
+
+extern "C" void DisablePIC();
 
 __attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters *registers)
 {
@@ -35,6 +38,13 @@ __attribute__((interrupt)) void ExceptionHandler2(Interrupts::CInterruptRegister
     while (true) {
         Halt();    
     }
+}
+
+__attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *) {
+    Kernel::Log(KERNEL_LOG_DEBUG, "Hello from the timer!\n");
+
+    TimerReset();
+    LAPIC_EOI();
 }
 
 namespace Kernel::CPU::Interrupts {
@@ -73,11 +83,16 @@ namespace Kernel::CPU::Interrupts {
             }
         }
 
+        CreateIDTEntry(0x20, (void *)TimerInterrupt, 0x8E);
+
         /* Now we setup the IDTR */
         IDTPtr.Limit = 0xfff;
         IDTPtr.Addr = (uint64_t)&IDT;
 
+        DisablePIC();
+
         /* Load IDT */
         asm ("lidt %0" : : "m" (IDTPtr));
+        asm ("sti");
     }
 }
