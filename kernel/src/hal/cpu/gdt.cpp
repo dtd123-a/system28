@@ -32,9 +32,14 @@ class GlobalDescriptorTable {
 GlobalDescriptorTable GlobalGDT;
 
 namespace Kernel::CPU::GDT {
+    bool GlobalGDTSetup = false;
+
     void Initialize()
     {
-        GlobalGDT.Setup();
+        if (!GlobalGDTSetup) {
+            GlobalGDT.Setup();
+            GlobalGDTSetup = true;
+        }
         LoadGDT(&GlobalGDT.GDTPtr);
     }
 }

@@ -9,6 +9,7 @@
 #include <terminal/terminal.hpp>
 #include <mm/mem.hpp>
 #include <hal/vmm.hpp>
+#include <libs/kernel.hpp>
 
 namespace Kernel::Mem {
     struct Page {
@@ -38,8 +39,7 @@ namespace Kernel::Mem {
         }
 
         if (!largestEntry.length) {
-            Kernel::Log(KERNEL_LOG_FAIL, "No usable memory found!\n");
-            while(1); // TODO Replace with proper panic or other function
+            Kernel::Panic("No usable memory was found on the system.");
         }
 
         FrameList = (struct Page *)largestEntry.base;

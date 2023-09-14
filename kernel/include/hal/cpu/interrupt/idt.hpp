@@ -29,4 +29,5 @@ namespace Kernel::CPU::Interrupts {
     }__attribute__((packed));
 
     void Initialize();
+    void Install();
 }

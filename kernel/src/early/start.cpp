@@ -30,8 +30,8 @@ extern "C"
         Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", bootloader_data.smp.cpu_count);
         Kernel::VMM::InitPaging(bootloader_data.memmap, bootloader_data.kernel_addr, bootloader_data.hhdm_response.offset);
         Kernel::ACPI::SetRSDP((uintptr_t)bootloader_data.rsdp_response.address);
-        Kernel::CPU::InitializeLAPIC();
-        Kernel::CPU::SMPSetup(*bootloader_data.smp.cpus);
+        Kernel::CPU::SMPSetup(*bootloader_data.smp.cpus, bootloader_data.smp.cpu_count);
+        Kernel::CPU::SetupAllCPUs();
 
         while (true) {
             Kernel::CPU::Halt();

@@ -7,6 +7,9 @@
 #include <hal/acpi.hpp>
 #include <terminal/terminal.hpp>
 #include <hal/vmm.hpp>
+#include <libs/kernel.hpp>
+
+const long int TimerMax = 0xffffffl;
 
 enum LAPICRegisters {
     EOI = 0xB0,
@@ -40,13 +43,13 @@ namespace Kernel::CPU {
     }
 
     void TimerReset() {
-        if (GlobalMADT->LAPICAddress) LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 10);
+        if (GlobalMADT->LAPICAddress) LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, TimerMax);
     }
 
     void InitializeLAPIC() {
         GlobalMADT = (MADTHeader *)GetACPITable("APIC");
+        if (!GlobalMADT) Panic("No APIC present on the system.\n");
 
-        Kernel::Log(KERNEL_LOG_INFO, "Verified local apic at 0x%x\n", GlobalMADT->LAPICAddress);
         // Expect LAPIC base to be 4K aligned
         Kernel::VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
 
@@ -56,6 +59,6 @@ namespace Kernel::CPU {
         // TODO Calibrate the timer
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, 0x20);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 10);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, TimerMax);
     }
 }
