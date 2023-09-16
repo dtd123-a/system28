@@ -24,7 +24,8 @@ CPPFLAGS += \
     -mno-sse2 \
     -mno-red-zone \
     -mcmodel=kernel \
-    -Ikernel/include
+    -Ikernel/include \
+	-g
 
 LDFLAGS += \
     -nostdlib \
@@ -36,6 +37,8 @@ LDFLAGS += \
 ASMFLAGS += \
     -Wall \
     -f elf64
+
+QEMUFLAGS += -smp 4 -cdrom root.iso -d int -D qemu.log -no-shutdown -no-reboot
 
 kcsources = $(call rwildcard,kernel/src,*.cpp)
 kcsources_c = $(call rwildcard,kernel/src,*.c)
@@ -77,10 +80,10 @@ iso: $(kbin)
 	@rm -rf iso_root
 
 run: iso
-	qemu-system-x86_64 -smp 4 -cdrom root.iso -d int -D qemu.log -no-shutdown -no-reboot
+	qemu-system-x86_64 -enable-kvm $(QEMUFLAGS)
 
 rungdb: iso
-	qemu-system-x86_64 -smp 4 -cdrom root.iso -d int -D qemu.log -no-shutdown -no-reboot -s -S
+	qemu-system-x86_64 $(QEMUFLAGS) -s -S
 
 clean:
 	-@rm $(kobj)

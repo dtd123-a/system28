@@ -8,6 +8,6 @@ A rewrite of System/14 meant to be half as crappy. This time I am using C, C++ a
 - [x] SMP (Symmetric Multi-Processing)
 - [x] Virtual memory (paging)
 - [ ] LAPIC and I/O APIC (in progress)
-- [ ] Heap allocation
-- [ ] Timer
+- [x] Heap allocation
+- [x] Timer
 - [ ] Scheduling (again)
