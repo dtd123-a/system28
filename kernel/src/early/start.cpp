@@ -14,29 +14,26 @@
 #include <hal/cpu/interrupt/lapic.hpp>
 #include <mm/heap.hpp>
 
-extern "C"
+extern "C" void _start()
 {
-    void _start()
-    {
-        BootloaderData bootloader_data = GetBootloaderData();
+    BootloaderData bootloader_data = GetBootloaderData();
 
-        limine_framebuffer fb = *bootloader_data.fbData.framebuffers[0];
-        uint32_t *fb_ptr = (uint32_t *)fb.address;
+    limine_framebuffer fb = *bootloader_data.fbData.framebuffers[0];
+    uint32_t *fb_ptr = (uint32_t *)fb.address;
 
-        Kernel::CPU::Initialize();
-        Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
-        Kernel::Mem::InitializePMM(bootloader_data.memmap);
+    Kernel::CPU::Initialize();
+    Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
+    Kernel::Mem::InitializePMM(bootloader_data.memmap);
 
-        Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initializing...\n");
-        Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", bootloader_data.smp.cpu_count);
-        Kernel::VMM::InitPaging(bootloader_data.memmap, bootloader_data.kernel_addr, bootloader_data.hhdm_response.offset);
-        Kernel::ACPI::SetRSDP((uintptr_t)bootloader_data.rsdp_response.address);
-        Kernel::CPU::SMPSetup(*bootloader_data.smp.cpus, bootloader_data.smp.cpu_count);
-        Kernel::Mem::InitializeHeap(0x1000 * 10);
-        Kernel::CPU::SetupAllCPUs();
+    Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initializing...\n");
+    Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", bootloader_data.smp.cpu_count);
+    Kernel::VMM::InitPaging(bootloader_data.memmap, bootloader_data.kernel_addr, bootloader_data.hhdm_response.offset);
+    Kernel::ACPI::SetRSDP((uintptr_t)bootloader_data.rsdp_response.address);
+    Kernel::CPU::SMPSetup(*bootloader_data.smp.cpus, bootloader_data.smp.cpu_count);
+    Kernel::Mem::InitializeHeap(0x1000 * 10);
+    Kernel::CPU::SetupAllCPUs();
 
-        while (true) {
-            Kernel::CPU::Halt();
-        }
+    while (true) {
+        Kernel::CPU::Halt();
     }
 }

@@ -80,7 +80,7 @@ iso: $(kbin)
 	@rm -rf iso_root
 
 run: iso
-	qemu-system-x86_64 -enable-kvm $(QEMUFLAGS)
+	qemu-system-x86_64 $(QEMUFLAGS)
 
 rungdb: iso
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S

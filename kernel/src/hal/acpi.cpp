@@ -50,7 +50,6 @@ namespace Kernel::ACPI {
         GlobalRSDT = (SDTHeader *)(uintptr_t)SystemRSDP->RSDTPtr;
 
         // Map the RSDT
-        Kernel::Log(KERNEL_LOG_DEBUG, "RSDP Pointer = 0x%x\n", GlobalRSDT);
         MemoryMapACPITable(GlobalRSDT);
 
         if (!SDTChecksum(GlobalRSDT)) {
