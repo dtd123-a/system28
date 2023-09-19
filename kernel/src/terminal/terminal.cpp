@@ -151,6 +151,10 @@ namespace Kernel {
                     char buff[128];
                     Print(hexToString(n, buff, 128));
                 }
+                else if (*format == 's') {
+                    const char *str = va_arg(args, const char*);
+                    Print(str);
+                }
 
                 format++;
             }

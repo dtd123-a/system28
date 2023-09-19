@@ -3,8 +3,11 @@
 #include <terminal/terminal.hpp>
 #include <hal/cpu/interrupt/lapic.hpp>
 #include <libs/kernel.hpp>
+#include <hal/cpu/smp/smp.hpp>
 
 using namespace Kernel::CPU;
+
+extern bool SystemCrashFlag;
 
 extern "C" void DisablePIC();
 
@@ -26,8 +29,12 @@ __attribute__((interrupt)) void ExceptionHandler2(Interrupts::CInterruptRegister
 }
 
 __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *) {
-    Kernel::Log(KERNEL_LOG_DEBUG, "Hello from the timer!\n");
+    if (SystemCrashFlag) {
+        /* System has crashed, let's not process this interrupt and shut down that core. */
+        Kernel::CPU::CPUShutdown();
+    }
 
+    Kernel::Log(KERNEL_LOG_DEBUG, "Hello from the timer!\n");
     TimerReset();
     LAPIC_EOI();
 }

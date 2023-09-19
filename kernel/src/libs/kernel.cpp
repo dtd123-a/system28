@@ -14,12 +14,16 @@ namespace Kernel {
         Kernel::Log(KERNEL_LOG_FAIL, "A serious error has occured in the kernel component.\n");
         Kernel::Log(KERNEL_LOG_FAIL, "Error string = %s\n", error);
 
+        CPU::SetCrash();
+
         while (true) {
             CPU::Halt();
         }
     }
 
     void PanicFromException(CPU::Interrupts::CInterruptRegisters *registers, int error_code) {
+        CPU::SetCrash();
+        
         Kernel::Log(KERNEL_LOG_FAIL, "** STOP !! **\n");
         Kernel::Log(KERNEL_LOG_FAIL, "CPU Exception in kernel!!\n");
         Kernel::Log(KERNEL_LOG_FAIL, "{IP=0x%x, CS=0x%x, Flags=0x%x, SP=0x%x, SS=0x%x, ERR_CODE=0x%x}\n",

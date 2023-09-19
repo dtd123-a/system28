@@ -13,6 +13,7 @@
 #include <hal/acpi.hpp>
 #include <hal/cpu/interrupt/lapic.hpp>
 #include <mm/heap.hpp>
+#include <libs/kernel.hpp>
 
 extern "C" void _start()
 {

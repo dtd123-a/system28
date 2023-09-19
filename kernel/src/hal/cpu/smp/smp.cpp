@@ -28,7 +28,16 @@ namespace Kernel::CPU {
         smp_info[cpu].goto_address = (limine_goto_address)ptr;
     }
 
-    void PerCPUSetup() {
+    void CPUShutdown() {
+        CPU::ClearInterrupts();
+        CPU::Halt();
+
+        while (true) {
+            CPU::Halt();
+        }
+    }
+
+    void PerCPUSetup(limine_smp_info *) {
         CPU::GDT::Initialize();
         CPU::Interrupts::Install();
         CPU::InitializeLAPIC();
@@ -39,6 +48,8 @@ namespace Kernel::CPU {
     }
 
     void SetupAllCPUs() {
+        ClearInterrupts();
+
         if (!smp_info) return;
 
         if (num_cpu == 1) {
@@ -50,7 +61,9 @@ namespace Kernel::CPU {
         }
 
         for (uint32_t i = 1; i < num_cpu; i++) {
-            smp_info[i].goto_address = (limine_goto_address)&PerCPUSetup;
+            CPUJump(i, (void *)&PerCPUSetup);
         }
+
+        SetInterrupts();
     }
 }
