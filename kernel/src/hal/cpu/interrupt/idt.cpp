@@ -1,7 +1,7 @@
 #include <hal/cpu/interrupt/idt.hpp>
 #include <hal/cpu.hpp>
 #include <terminal/terminal.hpp>
-#include <hal/cpu/interrupt/lapic.hpp>
+#include <hal/cpu/interrupt/apic.hpp>
 #include <libs/kernel.hpp>
 #include <hal/cpu/smp/smp.hpp>
 

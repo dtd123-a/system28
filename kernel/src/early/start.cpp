@@ -11,7 +11,7 @@
 #include <hal/vmm.hpp>
 #include <mm/mem.hpp>
 #include <hal/acpi.hpp>
-#include <hal/cpu/interrupt/lapic.hpp>
+#include <hal/cpu/interrupt/apic.hpp>
 #include <mm/heap.hpp>
 #include <libs/kernel.hpp>
 
@@ -31,6 +31,7 @@ extern "C" void _start()
     Kernel::VMM::InitPaging(bootloader_data.memmap, bootloader_data.kernel_addr, bootloader_data.hhdm_response.offset);
     Kernel::ACPI::SetRSDP((uintptr_t)bootloader_data.rsdp_response.address);
     Kernel::CPU::SMPSetup(*bootloader_data.smp.cpus, bootloader_data.smp.cpu_count);
+    Kernel::CPU::InitializeMADT();
     Kernel::Mem::InitializeHeap(0x1000 * 10);
     Kernel::CPU::SetupAllCPUs();
 

@@ -22,8 +22,8 @@ namespace Kernel::CPU {
     }
 }
 /* For C code */
-extern "C" void CPUNop() {
-    Kernel::CPU::NoOp();
+extern "C" void CPUPause() {
+    Kernel::CPU::Pause();
 }
 
 extern "C" void CPUHlt() {

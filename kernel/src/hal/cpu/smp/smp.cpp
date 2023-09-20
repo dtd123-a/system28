@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <hal/cpu/gdt.hpp>
 #include <hal/cpu/interrupt/idt.hpp>
-#include <hal/cpu/interrupt/lapic.hpp>
+#include <hal/cpu/interrupt/apic.hpp>
 #include <hal/cpu.hpp>
 #include <terminal/terminal.hpp>
 
@@ -63,6 +63,8 @@ namespace Kernel::CPU {
         for (uint32_t i = 1; i < num_cpu; i++) {
             CPUJump(i, (void *)&PerCPUSetup);
         }
+
+        Kernel::CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
 
         SetInterrupts();
     }
