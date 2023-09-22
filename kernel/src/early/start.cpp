@@ -15,22 +15,24 @@
 #include <mm/heap.hpp>
 #include <libs/kernel.hpp>
 
+BootloaderData GlobalBootloaderData;
+
 extern "C" void _start()
 {
-    BootloaderData bootloader_data = GetBootloaderData();
+    GlobalBootloaderData = GetBootloaderData();
 
-    limine_framebuffer fb = *bootloader_data.fbData.framebuffers[0];
+    limine_framebuffer fb = *GlobalBootloaderData.fbData.framebuffers[0];
     uint32_t *fb_ptr = (uint32_t *)fb.address;
 
     Kernel::CPU::Initialize();
     Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
-    Kernel::Mem::InitializePMM(bootloader_data.memmap);
+    Kernel::Mem::InitializePMM(GlobalBootloaderData.memmap);
 
     Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initializing...\n");
-    Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", bootloader_data.smp.cpu_count);
-    Kernel::VMM::InitPaging(bootloader_data.memmap, bootloader_data.kernel_addr, bootloader_data.hhdm_response.offset);
-    Kernel::ACPI::SetRSDP((uintptr_t)bootloader_data.rsdp_response.address);
-    Kernel::CPU::SMPSetup(*bootloader_data.smp.cpus, bootloader_data.smp.cpu_count);
+    Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", GlobalBootloaderData.smp.cpu_count);
+    Kernel::VMM::InitPaging(GlobalBootloaderData.memmap, GlobalBootloaderData.kernel_addr, GlobalBootloaderData.hhdm_response.offset);
+    Kernel::ACPI::SetRSDP((uintptr_t)GlobalBootloaderData.rsdp_response.address);
+    Kernel::CPU::SMPSetup(*GlobalBootloaderData.smp.cpus, GlobalBootloaderData.smp.cpu_count);
     Kernel::CPU::InitializeMADT();
     Kernel::Mem::InitializeHeap(0x1000 * 10);
     Kernel::CPU::SetupAllCPUs();

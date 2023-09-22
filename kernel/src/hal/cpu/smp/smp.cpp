@@ -57,6 +57,7 @@ namespace Kernel::CPU {
             // Only LAPIC initialization is required as GDT and IDT are already installed
             // on the BSP.
             CPU::InitializeLAPIC();
+            SetInterrupts();
             return;
         }
 

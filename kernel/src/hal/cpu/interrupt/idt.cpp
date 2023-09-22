@@ -34,8 +34,14 @@ __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *
         Kernel::CPU::CPUShutdown();
     }
 
-    Kernel::Log(KERNEL_LOG_DEBUG, "Hello from the timer!\n");
+  //  Kernel::Log(KERNEL_LOG_DEBUG, "Hello from the timer!\n");
     TimerReset();
+    LAPIC_EOI();
+}
+
+__attribute__((interrupt)) void KeyboardInterrupt(Interrupts::CInterruptRegisters *) {
+    Kernel::Log(KERNEL_LOG_DEBUG, "Got key press (scan code = 0x%x)\n", Kernel::IO::inb(0x60));
+
     LAPIC_EOI();
 }
 
@@ -76,6 +82,7 @@ namespace Kernel::CPU::Interrupts {
         }
 
         CreateIDTEntry(0x20, (void *)TimerInterrupt, 0x8E);
+        CreateIDTEntry(0x21, (void *)KeyboardInterrupt, 0x8E);
 
         /* Now we setup the IDTR */
         IDTPtr.Limit = 0xfff;

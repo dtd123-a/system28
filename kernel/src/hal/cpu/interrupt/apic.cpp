@@ -11,6 +11,9 @@
 #include <mm/mem.hpp>
 #include <stddef.h>
 #include <libs/cpuid.hpp>
+#include <early/bootloader_data.hpp>
+
+extern BootloaderData GlobalBootloaderData;
 
 const long int TimerMax = 0x1234567l;
 
@@ -49,6 +52,7 @@ class IOAPIC {
     }__attribute__((packed));
 
     IOAPICStructure *base; // I/O APIC base
+    uintptr_t IOAPICBase = 0;
 
 public:
     struct RedirectionEntry {
@@ -73,24 +77,29 @@ public:
 
     IOAPIC(void *ptr) {
         base = (IOAPICStructure *)ptr;
+        IOAPICBase = base->IOAPICBase;
     }
 
     void Write(uint32_t reg, uint32_t value) {
-        uint32_t volatile *ptr = (uint32_t volatile *)(uintptr_t)base->IOAPICBase;
+        volatile uint32_t *volatile ptr = (uint32_t *)(uintptr_t)GetIOAPICBase();
 
         ptr[0] = (reg & 0xff);
         ptr[4] = value;
     }
 
     uint32_t Read(uint32_t reg) {
-        uint32_t volatile *ptr = (uint32_t volatile *)(uintptr_t)base->IOAPICBase;
+        volatile uint32_t *volatile ptr = (uint32_t *)(uintptr_t)GetIOAPICBase();
 
         ptr[0] = (reg & 0xff);
         return ptr[4];
     }
 
     uintptr_t GetIOAPICBase() {
-        return (uintptr_t)base->IOAPICBase;
+        return IOAPICBase;
+    }
+
+    void SetIOAPICBase(uintptr_t newValue) {
+        IOAPICBase = newValue;
     }
 
     RedirectionEntry ReadRedirectionEntry(uint32_t entry) {
@@ -174,17 +183,18 @@ namespace Kernel::CPU {
     }
 
     void InitializeIOAPIC() {
+        uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response.offset;
+
         InterruptControllerStructure *ioapic_structure = FindInterruptController(0x1);
         GlobalIOAPIC = new IOAPIC((void *)ioapic_structure);
 
-        for (uintptr_t i = ALIGN_DOWN(GlobalIOAPIC->GetIOAPICBase(), 4096); i < GlobalIOAPIC->GetIOAPICBase() + 1; i += 4096) {
-            VMM::MemoryMap(nullptr, i, i, false);
-        }
+        uintptr_t ioapic_base = GlobalIOAPIC->GetIOAPICBase();
+        VMM::MemoryMap(nullptr, ioapic_base + hhdm_base, ioapic_base, false);
+        GlobalIOAPIC->SetIOAPICBase(ioapic_base + hhdm_base);
+
+        Kernel::Log(KERNEL_LOG_DEBUG, "I/O APIC at 0x%x\n", GlobalIOAPIC->GetIOAPICBase());
         
-        //
-        //  * Keyboard IRQ example
-        //  * GlobalIOAPIC->CreateRedirectionEntry(IOAPIC::RedirectionEntry {0x21, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 1);
-        //
+        GlobalIOAPIC->CreateRedirectionEntry(IOAPIC::RedirectionEntry {0x21, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 1);
     }
 
     void InitializeLAPIC() {
@@ -196,7 +206,7 @@ namespace Kernel::CPU {
         /* Timer Setup */
         // TODO Calibrate the timer
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, 0x20);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 1234);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, TimerMax);
     }
 }
