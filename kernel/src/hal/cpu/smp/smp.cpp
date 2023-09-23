@@ -11,6 +11,7 @@
 #include <hal/cpu/interrupt/apic.hpp>
 #include <hal/cpu.hpp>
 #include <terminal/terminal.hpp>
+#include <libs/kernel.hpp>
 
 limine_smp_info* smp_info = nullptr;
 uint32_t num_cpu = 0; 
@@ -49,7 +50,6 @@ namespace Kernel::CPU {
 
     void SetupAllCPUs() {
         ClearInterrupts();
-        Kernel::CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
 
         if (!smp_info) return;
 
@@ -65,6 +65,15 @@ namespace Kernel::CPU {
         for (uint32_t i = 1; i < num_cpu; i++) {
             CPUJump(i, (void *)&PerCPUSetup);
         }
+
+        Kernel::CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
+        
+        /*  Acknowledge and discard the last keyboard IRQ 
+            in case the user hit a key before the IO APIC 
+            was set up, which would result in keyboard 
+            interrupts "not working".
+        */
+        IO::inb(0x60);
 
         SetInterrupts();
     }
