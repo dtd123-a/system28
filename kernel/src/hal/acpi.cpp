@@ -9,8 +9,10 @@
 #include <hal/vmm.hpp>
 #include <mm/mem.hpp>
 #include <libs/string.hpp>
+#include <early/bootloader_data.hpp>
 
 using Kernel::ACPI::SDTHeader;
+extern BootloaderData GlobalBootloaderData;
 
 struct RSDP {
     char Signature[8];
@@ -30,15 +32,22 @@ bool SDTChecksum(SDTHeader *tableHeader) {
     return sum == 0;
 }
 
-void MemoryMapACPITable(SDTHeader *tableHeader) {
+SDTHeader *MemoryMapACPITable(SDTHeader *tableHeader) {
+    uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response.offset;
+
     // First map the header so we know the size
+    uintptr_t tableHeaderPhys = (uintptr_t)tableHeader;
+
     for (uintptr_t i = ALIGN_DOWN((uintptr_t)tableHeader, 0x1000); i < (uintptr_t)tableHeader + sizeof(SDTHeader); i += 0x1000) {
-        Kernel::VMM::MemoryMap(nullptr, i, i, false);
+        Kernel::VMM::MemoryMap(nullptr, hhdm_base + i, i, false);
     }
+    tableHeader = (SDTHeader *)((uintptr_t)tableHeader + hhdm_base);
     // Then from the start of the table let's map the whole length of it
-    for (uintptr_t i = ALIGN_DOWN((uintptr_t)tableHeader, 0x1000); i < (uintptr_t)tableHeader + tableHeader->Length; i += 0x1000) {
-        Kernel::VMM::MemoryMap(nullptr, i, i, false);
+    for (uintptr_t i = ALIGN_DOWN((uintptr_t)tableHeaderPhys, 0x1000); i < (uintptr_t)tableHeaderPhys + tableHeader->Length; i += 0x1000) {
+        Kernel::VMM::MemoryMap(nullptr, hhdm_base + i, i, false);
     }
+
+    return tableHeader;
 }
 
 SDTHeader *GlobalRSDT = nullptr;
@@ -50,7 +59,7 @@ namespace Kernel::ACPI {
         GlobalRSDT = (SDTHeader *)(uintptr_t)SystemRSDP->RSDTPtr;
 
         // Map the RSDT
-        MemoryMapACPITable(GlobalRSDT);
+        GlobalRSDT = MemoryMapACPITable(GlobalRSDT);
 
         if (!SDTChecksum(GlobalRSDT)) {
             Kernel::Log(KERNEL_LOG_FAIL, "Warning: Checksum failed on RSDT! ACPI features will not work.\n");
@@ -68,11 +77,9 @@ namespace Kernel::ACPI {
             uintptr_t entry = RSDTTableStart + (i * 4);
             uint32_t *entryPtr = (uint32_t *)entry;
             SDTHeader *header = (SDTHeader *)(uintptr_t)*entryPtr;
-            
-            MemoryMapACPITable(header);
+            header = MemoryMapACPITable(header);
 
             if (strncmp(Signature, (const char*)header->Signature, 4) == 0) {
-                MemoryMapACPITable(header);
                 return header;
             }
         }
