@@ -49,6 +49,7 @@ namespace Kernel::CPU {
 
     void SetupAllCPUs() {
         ClearInterrupts();
+        Kernel::CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
 
         if (!smp_info) return;
 
@@ -64,8 +65,6 @@ namespace Kernel::CPU {
         for (uint32_t i = 1; i < num_cpu; i++) {
             CPUJump(i, (void *)&PerCPUSetup);
         }
-
-        Kernel::CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
 
         SetInterrupts();
     }

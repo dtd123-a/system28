@@ -15,7 +15,7 @@
 
 extern BootloaderData GlobalBootloaderData;
 
-const long int TimerMax = 0x1234567l;
+const long int TimerMax = 0x1111;
 
 enum LAPICRegisters {
     EOI = 0xB0,
@@ -194,6 +194,7 @@ namespace Kernel::CPU {
 
         Kernel::Log(KERNEL_LOG_DEBUG, "I/O APIC at 0x%x\n", GlobalIOAPIC->GetIOAPICBase());
         
+        /* PS/2 Keyboard */
         GlobalIOAPIC->CreateRedirectionEntry(IOAPIC::RedirectionEntry {0x21, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 1);
     }
 
@@ -201,12 +202,12 @@ namespace Kernel::CPU {
         // Expect LAPIC base to be 4K aligned
         VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
 
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
+        // LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
 
-        /* Timer Setup */
-        // TODO Calibrate the timer
+        // /* Timer Setup */
+        // // TODO Calibrate the timer
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, 0x20);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 1234);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 1);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, TimerMax);
     }
 }

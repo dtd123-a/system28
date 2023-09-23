@@ -35,6 +35,7 @@ __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *
     }
 
   //  Kernel::Log(KERNEL_LOG_DEBUG, "Hello from the timer!\n");
+    //Kernel::Print("t");
     TimerReset();
     LAPIC_EOI();
 }

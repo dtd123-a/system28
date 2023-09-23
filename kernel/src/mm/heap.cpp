@@ -99,4 +99,28 @@ namespace Kernel::Mem {
         InsertNode((void *)node, node->size);
         SpinlockRelease(&free_spinlock);
     }
+
+    SPINLOCK_CREATE(realloc_spinlock);
+    void *Reallocate(void *object, size_t new_size) {
+        SpinlockAquire(&realloc_spinlock);
+
+        /* Gets the object's frame struct in the freelist (it is placed right before the block actually starts)*/
+        Node *node = (Node *)((uintptr_t)object - sizeof(Node));
+        /* Size of block is calculated by requested size + sizeof(Node) to fit both the frame and the block */
+        size_t old_size = node->size - sizeof(Node); 
+
+        void *new_object = Allocate(new_size);
+        if (!new_object) {
+            goto cleanup;
+        }
+
+        memcpy(new_object, object, old_size);
+
+        Free(object);
+
+cleanup:
+        SpinlockRelease(&realloc_spinlock);
+        return new_object;
+    }
+
 }
