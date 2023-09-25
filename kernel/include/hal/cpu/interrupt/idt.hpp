@@ -30,4 +30,5 @@ namespace Kernel::CPU::Interrupts {
 
     void Initialize();
     void Install();
+    void CreateIDTEntry(int interrupt, void *handler, uint8_t gate_type);
 }

@@ -9,6 +9,7 @@
 #include <terminal/terminal.hpp>
 #include <stddef.h>
 #include <mm/mem.hpp>
+#include <libs/kernel.hpp>
 
 extern "C" void LoadCR3(void *pml4);
 PageTable *kernelPML4 = nullptr;
@@ -79,11 +80,14 @@ namespace Kernel::VMM {
         uintptr_t hhdm_base
     ) {
         PageTable *pml4 = (PageTable *)Kernel::Mem::AllocatePage();
+        if (!pml4) {
+            Panic("Unable to allocate memory for page map.");
+        }
 
         for (size_t i = 0; i < memmap.entry_count; i++) {
             switch (memmap.entries[i]->type) {
                 case LIMINE_MEMMAP_KERNEL_AND_MODULES: {
-                    Kernel::Log(KERNEL_LOG_DEBUG, "Mapping kernel starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base + kaddr.virtual_base - kaddr.physical_base);
+                    // Kernel::Log(KERNEL_LOG_DEBUG, "Mapping kernel starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base + kaddr.virtual_base - kaddr.physical_base);
                     for (uintptr_t j = 0; j < memmap.entries[i]->length; j += 4096) {
                         uintptr_t phys = memmap.entries[i]->base + j;
                         uintptr_t virt = phys + kaddr.virtual_base - kaddr.physical_base;
@@ -95,7 +99,7 @@ namespace Kernel::VMM {
 
                 case LIMINE_MEMMAP_USABLE: {
                     // For the usable memory let's identity map it.
-                    Kernel::Log(KERNEL_LOG_DEBUG, "Mapping usable memory starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base);
+                    // Kernel::Log(KERNEL_LOG_DEBUG, "Mapping usable memory starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base);
                     for (uintptr_t j = 0; j < memmap.entries[i]->length; j += 4096) {
                         MemoryMap(pml4, memmap.entries[i]->base + j, memmap.entries[i]->base + j, false);
                     }
@@ -104,7 +108,7 @@ namespace Kernel::VMM {
                 }
 
                 default: {
-                    Kernel::Log(KERNEL_LOG_DEBUG, "Mapping memory starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base + hhdm_base);
+                    // Kernel::Log(KERNEL_LOG_DEBUG, "Mapping memory starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base + hhdm_base);
                     for (uintptr_t j = 0; j < memmap.entries[i]->length; j += 4096) {
                         uintptr_t phys = memmap.entries[i]->base + j;
                         uintptr_t virt = phys + hhdm_base;

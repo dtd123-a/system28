@@ -12,8 +12,9 @@
 #include <hal/cpu.hpp>
 #include <terminal/terminal.hpp>
 #include <libs/kernel.hpp>
+#include <hal/acpi.hpp>
 
-limine_smp_info* smp_info = nullptr;
+limine_smp_info *smp_info = nullptr;
 uint32_t num_cpu = 0; 
 
 namespace Kernel::CPU {
@@ -50,6 +51,7 @@ namespace Kernel::CPU {
 
     void SetupAllCPUs() {
         ClearInterrupts();
+        ACPI::InitializeACPI();
 
         if (!smp_info) return;
 
@@ -58,12 +60,10 @@ namespace Kernel::CPU {
             // Only LAPIC initialization is required as GDT and IDT are already installed
             // on the BSP.
             CPU::InitializeLAPIC();
-            SetInterrupts();
-            return;
-        }
-
-        for (uint32_t i = 1; i < num_cpu; i++) {
-            CPUJump(i, (void *)&PerCPUSetup);
+        } else {
+            for (uint32_t i = 1; i < num_cpu; i++) {
+                CPUJump(i, (void *)&PerCPUSetup);
+            }
         }
 
         Kernel::CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
@@ -74,7 +74,6 @@ namespace Kernel::CPU {
             interrupts "not working".
         */
         IO::inb(0x60);
-
         SetInterrupts();
     }
 }

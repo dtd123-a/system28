@@ -50,7 +50,7 @@ namespace Kernel::CPU::Interrupts {
     IDTEntry IDT[256];
     IDTR IDTPtr;
 
-    void CreateIDTEntry(int interrupt, void* handler, uint8_t gate_type)
+    void CreateIDTEntry(int interrupt, void *handler, uint8_t gate_type)
     {
         IDT[interrupt].Offset0 = (uint16_t)((uint64_t)handler & 0x000000000000ffff);
         IDT[interrupt].Offset1 = (uint16_t)(((uint64_t)handler & 0x00000000ffff0000) >> 16);      

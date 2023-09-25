@@ -5,7 +5,7 @@ cc := x86_64-unknown-elf-gcc
 ld := x86_64-unknown-elf-ld
 kbin := kernel.elf
 
-CPPFLAGS += \
+C_CPP_COMMONFLAGS += \
     -Wall \
     -Wextra \
     -Werror \
@@ -26,6 +26,8 @@ CPPFLAGS += \
     -mcmodel=kernel \
     -Ikernel/include \
 	-g
+
+CPPFLAGS += \
 
 LDFLAGS += \
     -nostdlib \
@@ -57,11 +59,11 @@ $(kbin): $(kobj)
 
 kernel/src/%.o: kernel/src/%.cpp
 	@echo CXX $<
-	@$(cpp) $(CPPFLAGS) -c $< -o $@ -g
+	@$(cpp) $(C_CPP_COMMONFLAGS) $(CPPFLAGS) -c $< -o $@ -g
 
 kernel/src/%.o: kernel/src/%.c
 	@echo 'CC ' $<
-	@$(cc) $(CPPFLAGS) -c $< -o $@ -g
+	@$(cc) $(C_CPP_COMMONFLAGS) -c $< -o $@ -g
 
 kernel/src/%.o: kernel/src/%.asm
 	@echo 'AS ' $<

@@ -10,9 +10,15 @@
 #include <mm/mem.hpp>
 #include <libs/string.hpp>
 #include <early/bootloader_data.hpp>
+#include <libs/kernel.hpp>
+#include <hal/cpu/interrupt/apic.hpp>
 
 using Kernel::ACPI::SDTHeader;
+using Kernel::ACPI::FADTStructure;
+
 extern BootloaderData GlobalBootloaderData;
+
+FADTStructure *GlobalFADT = nullptr;
 
 struct RSDP {
     char Signature[8];
@@ -85,5 +91,63 @@ namespace Kernel::ACPI {
         }
 
         return nullptr;
+    }
+    
+    void InitializeACPI() {
+        GlobalFADT = (FADTStructure *)GetACPITable("FACP");
+        if (!GlobalFADT) return;
+        if (!SDTChecksum((SDTHeader *)GlobalFADT)) Kernel::Panic("ACPI table has failed checksum test.");
+
+        Kernel::Log(KERNEL_LOG_INFO, "ACPI: Parsing ACPI \"FADT\" table\n");
+
+        switch (GlobalFADT->PreferredPowerManagementProfile) {
+            case 1: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a desktop\n");
+                break;
+            }
+            case 2: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a laptop\n");
+                break;
+            }
+            case 3: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a workstation\n");
+                break;
+            }
+            case 4: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a server\n");
+                break;
+            }
+            case 5: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a SOHO server\n");
+                break;
+            }
+            case 6: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using an appliance PC\n");
+                break;
+            }
+            case 7: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a high-performance server\n");
+                break;
+            }
+            case 8: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a tablet\n");
+                break;
+            }
+            default: {
+                Kernel::Log(KERNEL_LOG_INFO, "ACPI: Device type is undefined, or you are using an emulator.\n");
+                break;
+            }
+        }
+
+        MADTHeader *madt = (MADTHeader *)GetACPITable("APIC");
+        if (!madt) Kernel::Panic("No APIC description table found on the system!");
+
+        if (madt->Flags.Dual8259) {
+            Kernel::Log(KERNEL_LOG_DEBUG, "ACPI: Dual 8259 specified in MADT flags\n");
+
+            Kernel::Log(KERNEL_LOG_DEBUG, "System vector for SCI interrupt: 0x%x\n", GlobalFADT->SCIInterrupt);
+        } else {
+            Kernel::Log(KERNEL_LOG_DEBUG, "ACPI: No Dual 8259 setup.\n");
+        }
     }
 }

@@ -14,6 +14,7 @@
 #include <hal/cpu/interrupt/apic.hpp>
 #include <mm/heap.hpp>
 #include <libs/kernel.hpp>
+#include <logo.h>
 
 BootloaderData GlobalBootloaderData;
 
@@ -27,9 +28,9 @@ extern "C" void _start()
     Kernel::CPU::Initialize();
     Kernel::Init::InitializeFlanterm(fb_ptr, fb.width, fb.height, fb.pitch);
     Kernel::Mem::InitializePMM(GlobalBootloaderData.memmap);
-
+    Kernel::Print(System28ASCII());
     Kernel::Log(KERNEL_LOG_SUCCESS, "Kernel initializing...\n");
-    Kernel::Log(KERNEL_LOG_INFO, "Number of CPUs: %d\n", GlobalBootloaderData.smp.cpu_count);
+    Kernel::Log(KERNEL_LOG_INFO, "Kernel: Number of CPUs: %d\n", GlobalBootloaderData.smp.cpu_count);
     Kernel::VMM::InitPaging(GlobalBootloaderData.memmap, GlobalBootloaderData.kernel_addr, GlobalBootloaderData.hhdm_response.offset);
     Kernel::ACPI::SetRSDP((uintptr_t)GlobalBootloaderData.rsdp_response.address);
     Kernel::CPU::SMPSetup(*GlobalBootloaderData.smp.cpus, GlobalBootloaderData.smp.cpu_count);

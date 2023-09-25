@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <libs/cpuid.hpp>
 #include <early/bootloader_data.hpp>
+#include <hal/cpu/interrupt/idt.hpp>
 
 extern BootloaderData GlobalBootloaderData;
 
@@ -24,15 +25,6 @@ enum LAPICRegisters {
     TimerDiv = 0x3E0,
     TimerInitCount = 0x380,
 };
-
-struct InterruptControllerStructure {
-    //
-    // These are the common values in all the Interrupt Controller structure types.
-    // Type indicates the type (size of the structure varies for each type), and length is the length of that structure.
-    //
-    uint8_t Type;
-    uint8_t Length;
-}__attribute__((packed));
 
 // 
 // IOAPIC class
@@ -134,13 +126,6 @@ public:
 
 using namespace Kernel::ACPI;
 
-struct MADTHeader {
-    SDTHeader StandardHeader;
-    uint32_t LAPICAddress;
-    uint32_t Flags;
-    InterruptControllerStructure firstICS;
-}__attribute__((packed));
-
 MADTHeader *GlobalMADT = nullptr;
 IOAPIC *GlobalIOAPIC = nullptr;
 
@@ -191,8 +176,6 @@ namespace Kernel::CPU {
         uintptr_t ioapic_base = GlobalIOAPIC->GetIOAPICBase();
         VMM::MemoryMap(nullptr, ioapic_base + hhdm_base, ioapic_base, false);
         GlobalIOAPIC->SetIOAPICBase(ioapic_base + hhdm_base);
-
-        Kernel::Log(KERNEL_LOG_DEBUG, "I/O APIC at 0x%x\n", GlobalIOAPIC->GetIOAPICBase());
         
         /* PS/2 Keyboard */
         GlobalIOAPIC->CreateRedirectionEntry(IOAPIC::RedirectionEntry {0x21, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 1);
