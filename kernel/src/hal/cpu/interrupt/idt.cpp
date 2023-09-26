@@ -40,8 +40,14 @@ __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *
     LAPIC_EOI();
 }
 
+constexpr uint8_t DeleteScancode = 0xE0;
 __attribute__((interrupt)) void KeyboardInterrupt(Interrupts::CInterruptRegisters *) {
-    Kernel::Log(KERNEL_LOG_DEBUG, "Got key press (scan code = 0x%x)\n", Kernel::IO::inb(0x60));
+    uint8_t scan = Kernel::IO::inb(0x60);
+    Kernel::Log(KERNEL_LOG_DEBUG, "Got key press (scan code = 0x%x)\n", scan);
+
+    if (scan == DeleteScancode) {
+        if (!Kernel::ACPI::PerformACPIReboot()) Kernel::Log(KERNEL_LOG_FAIL, "Reboot failed.\n");
+    }
 
     LAPIC_EOI();
 }

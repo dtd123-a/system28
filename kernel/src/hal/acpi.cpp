@@ -12,6 +12,7 @@
 #include <early/bootloader_data.hpp>
 #include <libs/kernel.hpp>
 #include <hal/cpu/interrupt/apic.hpp>
+#include <hal/cpu.hpp>
 
 using Kernel::ACPI::SDTHeader;
 using Kernel::ACPI::FADTStructure;
@@ -139,15 +140,52 @@ namespace Kernel::ACPI {
             }
         }
 
+        Kernel::Log(KERNEL_LOG_DEBUG, "FADT length: %d\n", GlobalFADT->Length);
+
         MADTHeader *madt = (MADTHeader *)GetACPITable("APIC");
         if (!madt) Kernel::Panic("No APIC description table found on the system!");
 
         if (madt->Flags.Dual8259) {
             Kernel::Log(KERNEL_LOG_DEBUG, "ACPI: Dual 8259 specified in MADT flags\n");
-
             Kernel::Log(KERNEL_LOG_DEBUG, "System vector for SCI interrupt: 0x%x\n", GlobalFADT->SCIInterrupt);
         } else {
             Kernel::Log(KERNEL_LOG_DEBUG, "ACPI: No Dual 8259 setup.\n");
         }
+    }
+
+    /* Performs a warm reboot using ACPI. Returns false if the operation could not be completed. */
+    bool PerformACPIReboot() {
+        Kernel::Log(KERNEL_LOG_EVENT, "Attempting to perform ACPI system reset.\n");
+
+        if (!GlobalFADT) return false;
+        if (GlobalFADT->Revision < 2) return false;
+
+        switch (GlobalFADT->ResetReg.AddressSpace) {
+            case GenericAddressStructure::GAS_TYPE_MMIO: { // System memory space
+                // Make sure the memory is mapped
+                for (uintptr_t i = ALIGN_DOWN(GlobalFADT->ResetReg.Address, 4096); i < GlobalFADT->ResetReg.Address + 1; i += 4096) {
+                    VMM::MemoryMap(nullptr, i, i, false);
+                }
+
+                uint8_t *reset = (uint8_t *)GlobalFADT->ResetReg.Address;
+                *reset = GlobalFADT->ResetValue; // System will reset now!
+                
+                CPU::ClearInterrupts();
+                while (true);
+
+                break;
+            }
+            case GenericAddressStructure::GAS_TYPE_IO: { // I/O space
+                IO::outb(GlobalFADT->ResetReg.Address, GlobalFADT->ResetValue); // System will reset now!
+
+                CPU::ClearInterrupts();
+                while (true);
+
+                break;
+            }
+            /* TODO Implement the PCI-based reboot */
+        }
+
+        return false;
     }
 }

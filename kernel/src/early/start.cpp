@@ -37,6 +37,7 @@ extern "C" void _start()
     Kernel::CPU::InitializeMADT();
     Kernel::Mem::InitializeHeap(0x1000 * 10);
     Kernel::CPU::SetupAllCPUs();
+    Kernel::Log(KERNEL_LOG_INFO, "Press the Delete key to reset the system.\n");
 
     while (true) {
         Kernel::CPU::Halt();

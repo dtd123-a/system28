@@ -20,6 +20,24 @@ namespace Kernel::ACPI {
     }__attribute__((packed));
 
     struct GenericAddressStructure {
+        enum {
+            GAS_TYPE_MMIO = 0x00,
+            GAS_TYPE_IO = 0x01,
+            GAS_TYPE_PCI = 0x02,
+            GAS_TYPE_EMBEDDED_CONTROLLER = 0x03,
+            GAS_TYPE_SMBUS = 0x04,
+            GAS_TYPE_SYS_CMOS = 0x05,
+            GAS_TYPE_PCI_BAR_TARGET = 0x06,
+            GAS_TYPE_IPMI = 0x07,
+            GAS_TYPE_GPIO = 0x08,
+            GAS_TYPE_GENERIC_SERIAL_BUS = 0x09,
+            GAS_TYPE_PLATFORM_COMMUNICATIONS_CHANNEL = 0x0A,
+            /* 0x0B to 0x7E reserved */
+            GAS_TYPE_FUNCTIONAL_FIXED_HW = 0x7F,
+            /* 0x80 to 0xBF reserved */
+            /* 0xC0 to 0xFF OEM defined */
+        };
+
         /*
             * The Generic Address Structure (GAS) is used by ACPI to indicate where the I/O or data is.
         */
@@ -31,10 +49,6 @@ namespace Kernel::ACPI {
     }__attribute__((packed));
 
     struct FADTStructure : SDTHeader {
-        /*
-            * Thanks a lot to https://wiki.osdev.org/FADT for this extremely long C struct definition.
-        */
-
         uint32_t FirmwareCtrl;
         uint32_t DSDT;
 
@@ -43,29 +57,29 @@ namespace Kernel::ACPI {
 
         uint8_t PreferredPowerManagementProfile;
         uint16_t SCIInterrupt;
-        uint32_t SMICommandPort;
-        uint8_t AcpiEnable;
-        uint8_t AcpiDisable;
+        uint32_t SCICmd;
+        uint8_t ACPIEnable;
+        uint8_t ACPIDisable;
         uint8_t S4BIOS_REQ;
-        uint8_t PSTATE_Control;
-        uint32_t PM1aEventBlock;
-        uint32_t PM1bEventBlock;
-        uint32_t PM1aControlBlock;
-        uint32_t PM1bControlBlock;
-        uint32_t PM2ControlBlock;
-        uint32_t PMTimerBlock;
-        uint32_t GPE0Block;
-        uint32_t GPE1Block;
-        uint8_t PM1EventLength;
-        uint8_t PM1ControlLength;
-        uint8_t PM2ControlLength;
-        uint8_t PMTimerLength;
-        uint8_t GPE0Length;
-        uint8_t GPE1Length;
-        uint8_t GPE1Base;
-        uint8_t CStateControl;
-        uint16_t WorstC2Latency;
-        uint16_t WorstC3Latency;
+        uint8_t PSTATE_CNT;
+        uint32_t PM1a_EVT_BLK;
+        uint32_t PM1b_EVT_BLK;
+        uint32_t PM1a_CNT_BLK;
+        uint32_t PM1b_CNT_BLK;
+        uint32_t PM2_CNT_BLK;
+        uint32_t PM_TMR_BLK;
+        uint32_t GPE0_BLK;
+        uint32_t GPE1_BLK;
+        uint8_t PM1_EVT_LEN;
+        uint8_t PM1_CNT_LEN;
+        uint8_t PM2_CNT_LEN;
+        uint8_t PM_TMR_LEN;
+        uint8_t GPE0_BLK_LEN;
+        uint8_t GPE1_BLK_LEN;
+        uint8_t GPE1_BASE;
+        uint8_t CST_CNT;
+        uint16_t P_LVL2_LAT;
+        uint16_t P_LVL3_LAT;
         uint16_t FlushSize;
         uint16_t FlushStride;
         uint8_t DutyOffset;
@@ -73,33 +87,32 @@ namespace Kernel::ACPI {
         uint8_t DayAlarm;
         uint8_t MonthAlarm;
         uint8_t Century;
-    
-        // ACPI 2+ only
-        uint16_t BootArchitectureFlags;
-    
-        uint8_t Reserved2;
+        uint16_t IAPC_BOOT_ARCH;
+        uint8_t Reserved_0;
         uint32_t Flags;
-    
+        // Byte off. 116
         GenericAddressStructure ResetReg;
-    
-        uint8_t ResetValue;
-        uint8_t Reserved3[3];
-    
-        // ACPI 2+ only
-        uint64_t X_FirmwareControl;
-        uint64_t X_Dsdt;
-    
-        GenericAddressStructure X_PM1aEventBlock;
-        GenericAddressStructure X_PM1bEventBlock;
-        GenericAddressStructure X_PM1aControlBlock;
-        GenericAddressStructure X_PM1bControlBlock;
-        GenericAddressStructure X_PM2ControlBlock;
-        GenericAddressStructure X_PMTimerBlock;
-        GenericAddressStructure X_GPE0Block;
-        GenericAddressStructure X_GPE1Block;
+        // Byte off. 128
+        uint8_t ResetValue; // The value to place in ResetReg for a reset
+        uint16_t ARM_BOOT_ARCH;
+        uint8_t FADTMinorVersion;
+        uint64_t X_FirmwareCtrl;
+        uint64_t X_DSDT;
+        GenericAddressStructure X_PM1a_EVT_BLK;
+        GenericAddressStructure X_PM1b_EVT_BLK;
+        GenericAddressStructure X_PM1a_CNT_BLK;
+        GenericAddressStructure X_PM1b_CNT_BLK;
+        GenericAddressStructure X_PM2_CNT_BLK;
+        GenericAddressStructure X_PM_TMR_BLK;
+        GenericAddressStructure X_GPE0_BLK;
+        GenericAddressStructure X_GPE1_BLK;
+        GenericAddressStructure SleepCtrlRegister;
+        GenericAddressStructure SleepStatRegister;
+        GenericAddressStructure HypervisorId;
     }__attribute__((packed));
 
     void SetRSDP(uintptr_t rsdp);
     SDTHeader *GetACPITable(const char *Signature);
     void InitializeACPI();
+    bool PerformACPIReboot();
 }

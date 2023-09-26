@@ -122,6 +122,9 @@ namespace Kernel {
             case KERNEL_LOG_DEBUG:
                 Print("[\x1b[38;5;48m DEBUG \x1B[0m] ");
                 break;
+            case KERNEL_LOG_EVENT:
+                Print("[\x1b[93m EVENT \x1B[0m] ");
+                break;
             default:
                 break;
         }

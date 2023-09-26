@@ -12,7 +12,8 @@ enum KernelLogType {
     KERNEL_LOG_FAIL,
     KERNEL_LOG_INFO,
     KERNEL_LOG_PRINTONLY,
-    KERNEL_LOG_DEBUG
+    KERNEL_LOG_DEBUG,
+    KERNEL_LOG_EVENT
 };
 
 namespace Kernel {
