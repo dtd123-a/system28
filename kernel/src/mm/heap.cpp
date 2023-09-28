@@ -60,7 +60,9 @@ static Node *FindSuitableNode(size_t size) {
 
                 return ret;
             }
+
         }
+        current = current->next;
     }
 
     // No suitable node found
@@ -122,5 +124,4 @@ cleanup:
         SpinlockRelease(&realloc_spinlock);
         return new_object;
     }
-
 }

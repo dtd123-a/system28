@@ -139,18 +139,6 @@ namespace Kernel::ACPI {
                 break;
             }
         }
-
-        Kernel::Log(KERNEL_LOG_DEBUG, "FADT length: %d\n", GlobalFADT->Length);
-
-        MADTHeader *madt = (MADTHeader *)GetACPITable("APIC");
-        if (!madt) Kernel::Panic("No APIC description table found on the system!");
-
-        if (madt->Flags.Dual8259) {
-            Kernel::Log(KERNEL_LOG_DEBUG, "ACPI: Dual 8259 specified in MADT flags\n");
-            Kernel::Log(KERNEL_LOG_DEBUG, "System vector for SCI interrupt: 0x%x\n", GlobalFADT->SCIInterrupt);
-        } else {
-            Kernel::Log(KERNEL_LOG_DEBUG, "ACPI: No Dual 8259 setup.\n");
-        }
     }
 
     /* Performs a warm reboot using ACPI. Returns false if the operation could not be completed. */

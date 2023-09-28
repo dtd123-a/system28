@@ -88,8 +88,7 @@ static char* hexToString(uint64_t value, char* buffer, size_t n) {
 
 namespace Kernel {
     namespace Init {
-        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch)
-        {
+        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch) {
             fb_ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);
         }
     }
@@ -123,7 +122,7 @@ namespace Kernel {
                 Print("[\x1b[38;5;48m DEBUG \x1B[0m] ");
                 break;
             case KERNEL_LOG_EVENT:
-                Print("[\x1b[93m EVENT \x1B[0m] ");
+                Print("[\x1b[0;36m EVENT \x1B[0m] ");
                 break;
             default:
                 break;

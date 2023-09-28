@@ -16,6 +16,67 @@ namespace Kernel {
     void Panic(const char *error);
     void PanicFromException(CPU::Interrupts::CInterruptRegisters *registers, int error_code);
 
+    namespace Lib {
+        // A custom (not implementing std::vector, but still modelled after it) vector class.
+        template <typename T> class Vector {
+            // Private data
+            T *Array = nullptr;
+            uint16_t CurrentCapacity = 0;
+            uint16_t CurrentElementCount = 0;
+
+public:
+            Vector() {
+                Array = new T;
+                CurrentCapacity = 1;
+            }
+
+            // Adds an element to the end
+            void push_back(T value) {
+                if (CurrentCapacity == CurrentElementCount) { // The vector is currently full
+                    Array = (T *)Mem::Reallocate((void *)Array, sizeof(T) * (CurrentCapacity * 2)); // Allocate double the size.
+                    CurrentCapacity *= 2;
+                }
+
+                Array[CurrentElementCount] = value;
+                CurrentElementCount++;
+            }
+
+            T at(size_t index) {
+                if (index < CurrentCapacity) {
+                    return Array[index];
+                } else {
+                    Kernel::Panic("Vector out of bounds in kernel mode!");
+                    return 0;
+                }
+            }
+
+            void pop_back() {
+                CurrentElementCount--;
+            }
+
+            uint16_t size() {
+                return CurrentElementCount;
+            }
+
+            void front() {
+                return at(0);
+            }
+
+            void back() {
+                return at(CurrentElementCount - 1);
+            }
+
+            T *data() {
+                return Array;
+            }
+
+            T & operator[](size_t index) {
+                /* operator[] does not perform bounds checking. */
+                return Array[index];
+            }
+        };
+    }
+
     namespace IO {
         static inline void outb(uint16_t port, uint8_t val) {
             asm volatile ("outb %0, %1" : : "a"(val), "Nd"(port) );

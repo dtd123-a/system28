@@ -26,6 +26,9 @@ enum LAPICRegisters {
     TimerInitCount = 0x380,
 };
 
+/* Interrupt source override structures */
+Kernel::Lib::Vector<InterruptControllerStructure *> GlobalISOStructures;
+
 // 
 // IOAPIC class
 // Contains definitions and methods to interact with the IOAPIC
@@ -58,6 +61,15 @@ public:
         uint8_t InterruptMask : 1;
         uint64_t Reserved : 39;
         uint8_t Destination;
+    }__attribute__((packed));
+
+    struct InterruptSourceOverride {
+        uint8_t Type; // 2
+        uint8_t Length;
+        uint8_t Bus;
+        uint8_t Source;
+        uint32_t GSI;
+        uint16_t Flags;
     }__attribute__((packed));
 
     enum {
@@ -120,6 +132,14 @@ public:
     }
 
     void CreateRedirectionEntry(RedirectionEntry redirEntry, int irq) {
+        for (size_t i = 0; i < GlobalISOStructures.size(); i++) {
+            InterruptSourceOverride *iso = (InterruptSourceOverride *)GlobalISOStructures.at(i);
+
+            if (iso->Source == irq) {
+                Kernel::Log(KERNEL_LOG_DEBUG, "Using Interrupt Source Override for IRQ %d (now mapped to IRQ %d)\n", irq, iso->GSI);
+                irq = iso->GSI;
+            }
+        }
         WriteRedirectionEntry(irq * 2, redirEntry);
     }
 };
@@ -150,27 +170,37 @@ namespace Kernel::CPU {
         GlobalMADT = (MADTHeader *)GetACPITable("APIC");
         if (!GlobalMADT) Panic("No APIC present on the system.\n");
     }
+    
+    Lib::Vector<InterruptControllerStructure *> FindAllInterruptControllers(uint8_t Type) {
+        Lib::Vector<InterruptControllerStructure *> vec;
 
-    InterruptControllerStructure *FindInterruptController(uint8_t Type) {
         size_t length = GlobalMADT->StandardHeader.Length - sizeof(MADTHeader) + 2;
         InterruptControllerStructure *current = &GlobalMADT->firstICS;
 
         while (length > 0) {
             if (current->Type == Type) {
-                return current;
+                vec.push_back(current);
             }
 
             length -= current->Length;
             current = (InterruptControllerStructure *)((uintptr_t)current + current->Length);
         }
 
-        return nullptr;
+        return vec;
     }
 
     void InitializeIOAPIC() {
         uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response.offset;
 
-        InterruptControllerStructure *ioapic_structure = FindInterruptController(0x1);
+        Lib::Vector<InterruptControllerStructure *> ioapic_vec = FindAllInterruptControllers(0x1);
+        InterruptControllerStructure *ioapic_structure = ioapic_vec.at(0);
+        Kernel::Log(KERNEL_LOG_DEBUG, "Found %d I/O APICs on the system.\n", ioapic_vec.size());
+        GlobalISOStructures = FindAllInterruptControllers(0x2);
+
+        if (!ioapic_structure) {
+            Panic("No I/O APIC found on system.");
+        }
+        
         GlobalIOAPIC = new IOAPIC((void *)ioapic_structure);
 
         uintptr_t ioapic_base = GlobalIOAPIC->GetIOAPICBase();
@@ -185,7 +215,7 @@ namespace Kernel::CPU {
         // Expect LAPIC base to be 4K aligned
         VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
 
-        // LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
 
         // /* Timer Setup */
         // // TODO Calibrate the timer
