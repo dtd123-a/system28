@@ -10,6 +10,7 @@
 #include <external_libs/flanterm/flanterm.h>
 #include <external_libs/flanterm/backends/fb.h>
 #include <hal/spinlock.hpp>
+#include <hal/cpu/interrupt/idt.hpp>
 
 flanterm_context* fb_ctx = nullptr;
 
@@ -108,21 +109,22 @@ namespace Kernel {
     void Log(KernelLogType type, const char *format, ...)
     {
         SpinlockAquire(&LogSpinlock);
+        
         switch (type) {
             case KERNEL_LOG_SUCCESS:
-                Print("[\x1B[32m OK \x1B[0m] ");
+                Print("LOG  \x1B[32mOK    \x1B[0m ");
                 break;
             case KERNEL_LOG_FAIL:
-                Print("[\x1B[31m FAIL \x1B[0m] ");
+                Print("LOG  \x1B[31mFAIL  \x1B[0m ");
                 break;
             case KERNEL_LOG_INFO:
-                Print("[\x1B[94m INFO \x1B[0m] ");
+                Print("LOG  \x1B[94mINFO  \x1B[0m ");
                 break;
             case KERNEL_LOG_DEBUG:
-                Print("[\x1b[38;5;48m DEBUG \x1B[0m] ");
+                Print("LOG  \x1b[38;5;48mDEBUG \x1B[0m ");
                 break;
             case KERNEL_LOG_EVENT:
-                Print("[\x1b[0;36m EVENT \x1B[0m] ");
+                Print("LOG  \x1b[0;36mEVENT \x1B[0m ");
                 break;
             default:
                 break;
