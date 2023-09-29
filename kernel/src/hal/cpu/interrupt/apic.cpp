@@ -171,7 +171,9 @@ namespace Kernel::CPU {
     }
 
     void TimerReset() {
-        if (GlobalMADT->LAPICAddress) LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
+        if (GlobalMADT->LAPICAddress) {
+            LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
+        }
     }
 
     void InitializeMADT() {
@@ -241,7 +243,7 @@ namespace Kernel::CPU {
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, 0x20);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0x3);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 0xffffffff);
-        ACPI::PMTMRSleep(10000); // 10000us = 10ms
+        ACPI::PMTMRSleep(50000); // 50000us = 50ms
         // Stop the timer
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, APIC_TMR_MASKED);
 

@@ -12,6 +12,7 @@ extern bool SystemCrashFlag;
 extern "C" void DisablePIC();
 
 size_t TimerTicks = 0;
+size_t SecondsSinceStartup = 0;
 
 __attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters *registers) {
     Kernel::PanicFromException(registers, 0);
@@ -35,7 +36,8 @@ __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *
         /* System has crashed, let's not process this interrupt and shut down that core. */
         Kernel::CPU::CPUShutdown();
     }
-    
+
+    SecondsSinceStartup = (TimerTicks * 50) / 1000;
     TimerTicks++;
 
     TimerReset();
