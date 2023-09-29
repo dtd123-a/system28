@@ -34,4 +34,6 @@ namespace Kernel::CPU {
     void InitializeMADT();
     void LAPIC_EOI();
     void TimerReset();
+    void UninstallLAPICTimer();
+    void CalibrateTimer();
 }

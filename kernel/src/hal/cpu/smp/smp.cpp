@@ -50,8 +50,10 @@ namespace Kernel::CPU {
     }
 
     void SetupAllCPUs() {
-        ClearInterrupts();
         ACPI::InitializeACPI();
+        Kernel::Log(KERNEL_LOG_EVENT, "Calibrating Local APIC timer\n");
+        CalibrateTimer();
+        ClearInterrupts();
 
         if (!smp_info) return;
 

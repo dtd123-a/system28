@@ -5,6 +5,7 @@
 */
 #pragma once
 #include <stdint.h>
+#include <stddef.h>
 
 namespace Kernel::ACPI {
     struct SDTHeader {
@@ -114,5 +115,6 @@ namespace Kernel::ACPI {
     void SetRSDP(uintptr_t rsdp);
     SDTHeader *GetACPITable(const char *Signature);
     void InitializeACPI();
+    bool PMTMRSleep(size_t us);
     bool PerformACPIReboot();
 }

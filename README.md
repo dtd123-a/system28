@@ -8,7 +8,7 @@ A rewrite of System/14 meant to be half as crappy. This time I am using C, C++ a
 - [x] SMP (Symmetric Multi-Processing)
 - [x] Virtual memory (paging)
 - [x] LAPIC and I/O APIC
-- [ ] APIC timer calibration via HPET
+- [x] APIC timer calibration via PMT
 - [x] Heap allocation
 - [x] Timer
 - [ ] Scheduling (again)

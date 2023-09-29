@@ -16,7 +16,14 @@
 
 extern BootloaderData GlobalBootloaderData;
 
-const long int TimerMax = 0x1111;
+constexpr size_t APIC_TMR_MASKED = 0x10000;
+constexpr size_t APIC_TMR_MODE_PERIODIC = (1 << 7);
+
+struct {
+    uint32_t LVTRegister;
+    uint32_t DivisorRegister;
+    uint32_t InitCountRegister;
+} GlobalTimerFlags;
 
 enum LAPICRegisters {
     EOI = 0xB0,
@@ -24,6 +31,7 @@ enum LAPICRegisters {
     LVTTimer = 0x320,
     TimerDiv = 0x3E0,
     TimerInitCount = 0x380,
+    TimerCurrentCount = 0x390
 };
 
 /* Interrupt source override structures */
@@ -163,7 +171,7 @@ namespace Kernel::CPU {
     }
 
     void TimerReset() {
-        if (GlobalMADT->LAPICAddress) LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, TimerMax);
+        if (GlobalMADT->LAPICAddress) LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
     }
 
     void InitializeMADT() {
@@ -213,14 +221,36 @@ namespace Kernel::CPU {
 
     void InitializeLAPIC() {
         // Expect LAPIC base to be 4K aligned
-        VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
-
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
 
-        // /* Timer Setup */
-        // // TODO Calibrate the timer
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, GlobalTimerFlags.LVTRegister);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, GlobalTimerFlags.DivisorRegister);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
+    }
+
+    void UninstallLAPICTimer() {
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, APIC_TMR_MASKED);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 0);
+    }
+
+    void CalibrateTimer() {
+        VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
+
+        // We are setting up the timer for the BSP, then deleting it after.
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, 0x20);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 1);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, TimerMax);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0x3);
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 0xffffffff);
+        ACPI::PMTMRSleep(10000); // 10000us = 10ms
+        // Stop the timer
+        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, APIC_TMR_MASKED);
+
+        uint32_t calibration = 0xffffffff - LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerCurrentCount);
+        
+        GlobalTimerFlags.LVTRegister = 0x20;
+        GlobalTimerFlags.DivisorRegister = 0x3;
+        GlobalTimerFlags.InitCountRegister = calibration;
+
+        UninstallLAPICTimer();
     }
 }

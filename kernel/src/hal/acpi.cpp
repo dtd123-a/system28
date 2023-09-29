@@ -93,7 +93,28 @@ namespace Kernel::ACPI {
 
         return nullptr;
     }
-    
+
+    /* Fixed rate of the PMT, at 3.579545 MHz */
+    constexpr size_t PMT_TMR_RATE = 3579545;
+
+    // Thanks a lot to https://dox.ipxe.org/acpi__timer_8c_source.html and https://wiki.osdev.org/ACPI_Timer
+    bool PMTMRSleep(size_t us) {
+        if (GlobalFADT->PM_TMR_LEN != 4 || !GlobalFADT->PM_TMR_BLK) {
+            Kernel::Log(KERNEL_LOG_FAIL, "PM_TMR delay attemped but failed as timer is unavailable.");
+            return false;
+        }
+        
+        size_t count = IO::inl(GlobalFADT->PM_TMR_BLK);
+        size_t target = ((us * PMT_TMR_RATE) / 1000000);
+        size_t current = 0;
+
+        while (current < target) {
+            current = ((IO::inl(GlobalFADT->PM_TMR_BLK) - count) & 0xffffff);
+        }
+
+        return true;
+    }
+
     void InitializeACPI() {
         GlobalFADT = (FADTStructure *)GetACPITable("FACP");
         if (!GlobalFADT) return;
@@ -138,6 +159,12 @@ namespace Kernel::ACPI {
                 Kernel::Log(KERNEL_LOG_INFO, "ACPI: Device type is undefined, or you are using an emulator.\n");
                 break;
             }
+        }
+
+        if (GlobalFADT->PM_TMR_LEN == 4) {
+            Kernel::Log(KERNEL_LOG_DEBUG, "PM_TMR supported\n");
+        } else {
+            Kernel::Log(KERNEL_LOG_FAIL, "PM_TMR not supported\n");
         }
     }
 

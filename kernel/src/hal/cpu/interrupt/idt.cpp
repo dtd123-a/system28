@@ -11,6 +11,8 @@ extern bool SystemCrashFlag;
 
 extern "C" void DisablePIC();
 
+size_t TimerTicks = 0;
+
 __attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters *registers) {
     Kernel::PanicFromException(registers, 0);
 
@@ -33,9 +35,9 @@ __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *
         /* System has crashed, let's not process this interrupt and shut down that core. */
         Kernel::CPU::CPUShutdown();
     }
+    
+    TimerTicks++;
 
-  //  Kernel::Log(KERNEL_LOG_DEBUG, "Hello from the timer!\n");
-    //Kernel::Print("t");
     TimerReset();
     LAPIC_EOI();
 }
@@ -103,5 +105,13 @@ namespace Kernel::CPU::Interrupts {
         /* Load IDT */
         asm ("lidt %0" : : "m" (IDTPtr));
         asm ("sti");
+    }
+
+    void ResetTimerTicks() {
+        TimerTicks = 0;
+    }
+
+    size_t GetTimerTicks() {
+        return TimerTicks;
     }
 }
