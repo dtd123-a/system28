@@ -13,7 +13,7 @@ enum KPanicType {
 };
 
 namespace Kernel {
-    void Panic(const char *error);
+    __attribute__((noreturn)) void Panic(const char *error);
     void PanicFromException(CPU::Interrupts::CInterruptRegisters *registers, int error_code);
 
     namespace Lib {
@@ -46,7 +46,6 @@ public:
                     return Array[index];
                 } else {
                     Kernel::Panic("Vector out of bounds in kernel mode!");
-                    return 0;
                 }
             }
 

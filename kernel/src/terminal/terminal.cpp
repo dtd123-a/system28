@@ -14,13 +14,6 @@
 
 flanterm_context* fb_ctx = nullptr;
 
-SPINLOCK_CREATE(PutCharLock);
-void PutChar(char c) {
-    SpinlockAquire(&PutCharLock);
-    flanterm_write(fb_ctx, &c, 1);
-    SpinlockRelease(&PutCharLock);
-}
-
 static char* itoa(int num, char* str, int base, int n) {
     if (n == 0) {
         return NULL;
@@ -88,6 +81,13 @@ static char* hexToString(uint64_t value, char* buffer, size_t n) {
 
 
 namespace Kernel {
+    SPINLOCK_CREATE(PutCharLock);
+    void PutChar(char c) {
+        SpinlockAquire(&PutCharLock);
+        flanterm_write(fb_ctx, &c, 1);
+        SpinlockRelease(&PutCharLock);
+    }
+    
     namespace Init {
         void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch) {
             fb_ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);

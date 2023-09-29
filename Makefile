@@ -28,6 +28,8 @@ C_CPP_COMMONFLAGS += \
 	-g
 
 CPPFLAGS += \
+	-fno-exceptions \
+	-fno-rtti \
 
 LDFLAGS += \
     -nostdlib \
@@ -72,7 +74,7 @@ kernel/src/%.o: kernel/src/%.asm
 iso: $(kbin)
 	@rm -rf iso_root
 	@mkdir -p iso_root
-	@cp kernel.elf kernel/misc/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/
+	@cp kernel.elf ramdisk.tar kernel/misc/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin iso_root/
 	@xorriso -as mkisofs -b limine-bios-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-uefi-cd.bin \

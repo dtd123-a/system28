@@ -23,4 +23,5 @@ namespace Kernel {
 
     void Print(const char* string);
     void Log(KernelLogType type, const char *format, ...);
+    void PutChar(char c);
 }

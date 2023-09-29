@@ -1,5 +1,5 @@
 /*
-    * string.cpp
+    * string.c
     * String handling code
     * Created 09/09/23
 */

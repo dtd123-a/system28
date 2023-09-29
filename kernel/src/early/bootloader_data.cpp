@@ -44,6 +44,14 @@ static volatile struct limine_rsdp_request rsdp_request = {
     .response = 0  
 };
 
+static volatile struct limine_module_request module_request = {
+    .id = LIMINE_MODULE_REQUEST,
+    .revision = 0,
+    .response = 0,
+    .internal_module_count = 0,
+    .internal_modules = 0
+};
+
 BootloaderData GetBootloaderData()
 {
     BootloaderData ret = {
@@ -52,7 +60,8 @@ BootloaderData GetBootloaderData()
         .smp = *smp_request.response,
         .kernel_addr = *kaddr_request.response,
         .hhdm_response = *hhdm_request.response,
-        .rsdp_response = *rsdp_request.response
+        .rsdp_response = *rsdp_request.response,
+        .module_response = *module_request.response
     };
 
     return ret;

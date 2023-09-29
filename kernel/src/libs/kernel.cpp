@@ -31,7 +31,7 @@ void operator delete[](void *object, size_t) {
 
 namespace Kernel {
     SPINLOCK_CREATE(PanicLock);
-    void Panic(const char *error) {
+    __attribute__((noreturn)) void Panic(const char *error) {
         SpinlockAquire(&PanicLock);
         Kernel::Log(KERNEL_LOG_FAIL, "** STOP !! **\n");
         Kernel::Log(KERNEL_LOG_FAIL, "A serious error has occured in the kernel component.\n");
