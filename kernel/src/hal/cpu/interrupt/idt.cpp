@@ -14,6 +14,7 @@ extern "C" void DisablePIC();
 size_t TimerTicks = 0;
 
 __attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters *registers) {
+    Kernel::CPU::ClearInterrupts();
     Kernel::PanicFromException(registers, 0);
 
     while (true) {
@@ -23,6 +24,7 @@ __attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters
 
 /* Some exceptions push an error code onto the stack, this one handles those. */
 __attribute__((interrupt)) void ExceptionHandler2(Interrupts::CInterruptRegisters *registers, uintptr_t error_code) {
+    Kernel::CPU::ClearInterrupts();
     Kernel::PanicFromException(registers, error_code);
 
     while (true) {

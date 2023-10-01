@@ -15,6 +15,7 @@
 #include <mm/heap.hpp>
 #include <libs/kernel.hpp>
 #include <logo.h>
+#include <obj/mod.hpp>
 
 BootloaderData GlobalBootloaderData;
 
@@ -37,6 +38,7 @@ extern "C" void _start()
     Kernel::CPU::InitializeMADT();
     Kernel::Mem::InitializeHeap(0x1000 * 10);
     Kernel::CPU::SetupAllCPUs();
+    Kernel::Obj::HandleModuleObjects(GlobalBootloaderData.module_response);
     Kernel::Log(KERNEL_LOG_INFO, "Press the Delete key to reset the system.\n");
 
     while (true) {
