@@ -115,10 +115,12 @@ namespace Kernel::ACPI {
         return true;
     }
 
-    void InitializeACPI() {
+    void InitializeACPI(uintptr_t rsdp) {
+        SetRSDP(rsdp);
+        
         GlobalFADT = (FADTStructure *)GetACPITable("FACP");
-        if (!GlobalFADT) return;
-        if (!SDTChecksum((SDTHeader *)GlobalFADT)) Kernel::Panic("ACPI table has failed checksum test.");
+        if (!GlobalFADT) Panic("ACPI: No FACP.");
+        if (!SDTChecksum((SDTHeader *)GlobalFADT)) Kernel::Panic("ACPI: ACPI table has failed checksum test.");
 
         Kernel::Log(KERNEL_LOG_INFO, "ACPI: Parsing ACPI \"FADT\" table\n");
 

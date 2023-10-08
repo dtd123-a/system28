@@ -7,7 +7,6 @@
 #include <limine.h>
 
 namespace Kernel::CPU {
-    void SMPSetup(limine_smp_info* smp_info, uint32_t cpu_count);
     void CPUJump(unsigned int cpu, void* ptr);
     void CPUShutdown();
     void SetupAllCPUs();

@@ -33,11 +33,6 @@ __attribute__((interrupt)) void ExceptionHandler2(Interrupts::CInterruptRegister
 }
 
 __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *) {
-    if (SystemCrashFlag) {
-        /* System has crashed, let's not process this interrupt and shut down that core. */
-        Kernel::CPU::CPUShutdown();
-    }
-
     TimerTicks++;
 
     TimerReset();
@@ -49,7 +44,7 @@ __attribute__((interrupt)) void KeyboardInterrupt(Interrupts::CInterruptRegister
     uint8_t scan = Kernel::IO::inb(0x60);
 
     if (scan == DeleteScancode) {
-        if (!Kernel::ACPI::PerformACPIReboot()) Kernel::Log(KERNEL_LOG_FAIL, "Reboot failed.\n");
+        if (!Kernel::ACPI::PerformACPIReboot()) Kernel::Log(KERNEL_LOG_FAIL, "Unable to perform ACPI reboot.\n");
     }
 
     LAPIC_EOI();

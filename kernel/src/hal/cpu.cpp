@@ -10,8 +10,7 @@
 bool SystemCrashFlag = false;
 
 namespace Kernel::CPU {
-    void Initialize()
-    {
+    void Initialize() {
         Kernel::CPU::GDT::Initialize();
         Kernel::CPU::Interrupts::Initialize();
         Kernel::CPU::Interrupts::Install();
@@ -21,11 +20,8 @@ namespace Kernel::CPU {
         SystemCrashFlag = true;
     }
 }
+
 /* For C code */
 extern "C" void CPUPause() {
     Kernel::CPU::Pause();
-}
-
-extern "C" void CPUHlt() {
-    Kernel::CPU::Halt();
 }

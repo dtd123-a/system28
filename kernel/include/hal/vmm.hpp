@@ -25,6 +25,8 @@ struct PageTable {
     PageTableEntry entries[512];
 }__attribute__((packed)) __attribute__((aligned(0x1000)));
 
+extern "C" void LoadCR3(void *pml4);
+
 namespace Kernel::VMM {
     void InitPaging(limine_memmap_response memmap, limine_kernel_address_response kaddr, uintptr_t hhdm_base);
     bool MemoryMap(PageTable *target_pagemap, uintptr_t virt, uintptr_t phys, bool largePage);

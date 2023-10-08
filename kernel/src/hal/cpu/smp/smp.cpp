@@ -13,16 +13,14 @@
 #include <terminal/terminal.hpp>
 #include <libs/kernel.hpp>
 #include <hal/acpi.hpp>
+#include <early/bootloader_data.hpp>
+#include <hal/cpu/interrupt/apic.hpp>
 
 limine_smp_info *smp_info = nullptr;
-uint32_t num_cpu = 0; 
+uint32_t num_cpu = 0;
+extern BootloaderData GlobalBootloaderData;
 
 namespace Kernel::CPU {
-    void SMPSetup(limine_smp_info* smp_info, uint32_t cpu_count) {
-        ::smp_info = smp_info;
-        num_cpu = cpu_count;
-    }
-
     void CPUJump(unsigned int cpu, void* ptr) {
         if (!cpu) return; // CPU must be > 0
         if (!smp_info) return;
@@ -50,15 +48,20 @@ namespace Kernel::CPU {
     }
 
     void SetupAllCPUs() {
-        ACPI::InitializeACPI();
-        Kernel::Log(KERNEL_LOG_EVENT, "Calibrating Local APIC timer\n");
+        ::smp_info = *GlobalBootloaderData.smp.cpus;
+        num_cpu = GlobalBootloaderData.smp.cpu_count;
+
+        Log(KERNEL_LOG_EVENT, "Initializing the APIC\n");
+        CPU::InitializeMADT();
+
+        Log(KERNEL_LOG_EVENT, "Calibrating Local APIC timer\n");
         CalibrateTimer();
         ClearInterrupts();
 
         if (!smp_info) return;
 
         if (num_cpu == 1) {
-            Kernel::Log(KERNEL_LOG_DEBUG, "Using single-processor setup.\n");
+            Log(KERNEL_LOG_DEBUG, "Using single-processor setup.\n");
             // Only LAPIC initialization is required as GDT and IDT are already installed
             // on the BSP.
             CPU::InitializeLAPIC();
@@ -68,7 +71,7 @@ namespace Kernel::CPU {
             }
         }
 
-        Kernel::CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
+        CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
         
         /*  Acknowledge and discard the last keyboard IRQ 
             in case the user hit a key before the IO APIC 

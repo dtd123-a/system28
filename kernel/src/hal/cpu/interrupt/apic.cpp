@@ -17,7 +17,7 @@
 extern BootloaderData GlobalBootloaderData;
 
 constexpr size_t APIC_TMR_MASKED = 0x10000;
-constexpr size_t APIC_TMR_MODE_PERIODIC = (1 << 7);
+constexpr size_t APIC_TMR_MODE_PERIODIC = 0x20000;
 
 struct {
     uint32_t LVTRegister;
@@ -222,7 +222,6 @@ namespace Kernel::CPU {
     }
 
     void InitializeLAPIC() {
-        // Expect LAPIC base to be 4K aligned
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
 
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, GlobalTimerFlags.LVTRegister);
@@ -230,17 +229,10 @@ namespace Kernel::CPU {
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
     }
 
-    void UninstallLAPICTimer() {
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, APIC_TMR_MASKED);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 0);
-    }
-
     void CalibrateTimer() {
         VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
 
         // We are setting up the timer for the BSP, then deleting it after.
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, 0x20);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0x3);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 0xffffffff);
         ACPI::PMTMRSleep(50000); // 50000us = 50ms
@@ -249,10 +241,8 @@ namespace Kernel::CPU {
 
         uint32_t calibration = 0xffffffff - LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerCurrentCount);
         
-        GlobalTimerFlags.LVTRegister = 0x20;
+        GlobalTimerFlags.LVTRegister = 0x20 | APIC_TMR_MODE_PERIODIC;
         GlobalTimerFlags.DivisorRegister = 0x3;
         GlobalTimerFlags.InitCountRegister = calibration;
-
-        UninstallLAPICTimer();
     }
 }

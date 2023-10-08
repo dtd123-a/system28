@@ -11,7 +11,6 @@
 #include <mm/mem.hpp>
 #include <libs/kernel.hpp>
 
-extern "C" void LoadCR3(void *pml4);
 PageTable *kernelPML4 = nullptr;
 
 static bool is_aligned(uintptr_t addr, size_t boundary)

@@ -112,9 +112,8 @@ namespace Kernel::ACPI {
         GenericAddressStructure HypervisorId;
     }__attribute__((packed));
 
-    void SetRSDP(uintptr_t rsdp);
     SDTHeader *GetACPITable(const char *Signature);
-    void InitializeACPI();
+    void InitializeACPI(uintptr_t rsdp);
     bool PMTMRSleep(size_t us);
     bool PerformACPIReboot();
 }
