@@ -8,6 +8,7 @@
 #include <early/bootloader_data.hpp>
 #include <hal/vmm.hpp>
 #include <obj/tar.hpp>
+#include <terminal/terminal.hpp>
 
 extern BootloaderData GlobalBootloaderData;
 
@@ -28,8 +29,11 @@ namespace Kernel::Obj {
         for (size_t i = 0; i < moduleStructure.module_count; i++) {
             uintptr_t virtAddr = (uintptr_t)moduleStructure.modules[i]->address;
             uintptr_t physAddr = virtAddr - GlobalBootloaderData.hhdm_response.offset;
+            size_t size = moduleStructure.modules[i]->size;
 
-            VMM::MemoryMap(nullptr, virtAddr, physAddr, false);
+            for (size_t i = 0; i < size; i += 4096) {
+                VMM::MemoryMap(nullptr, virtAddr + i, physAddr + i, false);
+            }
 
             Modules->push_back(InternalModule {
                 .VirtualAddress = (void *)virtAddr,

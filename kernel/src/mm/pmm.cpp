@@ -13,7 +13,7 @@
 
 namespace Kernel::Mem {
     struct Page {
-        void* ptr;
+        void *ptr;
         bool free : 1;
     };
 

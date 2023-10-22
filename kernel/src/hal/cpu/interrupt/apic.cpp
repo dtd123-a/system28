@@ -35,7 +35,7 @@ enum LAPICRegisters {
 };
 
 /* Interrupt source override structures */
-Kernel::Lib::Vector<InterruptControllerStructure *> GlobalISOStructures;
+Kernel::Lib::Vector<InterruptControllerStructure *> *GlobalISOStructures;
 
 // 
 // IOAPIC class
@@ -140,8 +140,8 @@ public:
     }
 
     void CreateRedirectionEntry(RedirectionEntry redirEntry, int irq) {
-        for (size_t i = 0; i < GlobalISOStructures.size(); i++) {
-            InterruptSourceOverride *iso = (InterruptSourceOverride *)GlobalISOStructures.at(i);
+        for (size_t i = 0; i < GlobalISOStructures->size(); i++) {
+            InterruptSourceOverride *iso = (InterruptSourceOverride *)GlobalISOStructures->at(i);
 
             if (iso->Source == irq) {
                 Kernel::Log(KERNEL_LOG_DEBUG, "Using Interrupt Source Override for IRQ %d (now mapped to IRQ %d)\n", irq, iso->GSI);
@@ -181,31 +181,30 @@ namespace Kernel::CPU {
         if (!GlobalMADT) Panic("No APIC present on the system.\n");
     }
     
-    Lib::Vector<InterruptControllerStructure *> FindAllInterruptControllers(uint8_t Type) {
-        Lib::Vector<InterruptControllerStructure *> vec;
-
+    void FindAllInterruptControllers(Lib::Vector<InterruptControllerStructure *> *vec, uint8_t Type) {
         size_t length = GlobalMADT->StandardHeader.Length - sizeof(MADTHeader) + 2;
         InterruptControllerStructure *current = &GlobalMADT->firstICS;
 
         while (length > 0) {
             if (current->Type == Type) {
-                vec.push_back(current);
+                vec->push_back(current);
             }
 
             length -= current->Length;
             current = (InterruptControllerStructure *)((uintptr_t)current + current->Length);
         }
-
-        return vec;
     }
 
     void InitializeIOAPIC() {
         uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response.offset;
 
-        Lib::Vector<InterruptControllerStructure *> ioapic_vec = FindAllInterruptControllers(0x1);
+        Lib::Vector<InterruptControllerStructure *> ioapic_vec;
+        FindAllInterruptControllers(&ioapic_vec, 0x1);
+
         InterruptControllerStructure *ioapic_structure = ioapic_vec.at(0);
         Kernel::Log(KERNEL_LOG_DEBUG, "Found %d I/O APICs on the system.\n", ioapic_vec.size());
-        GlobalISOStructures = FindAllInterruptControllers(0x2);
+        GlobalISOStructures = new Lib::Vector<InterruptControllerStructure *>();
+        FindAllInterruptControllers(GlobalISOStructures, 0x2);
 
         if (!ioapic_structure) {
             Panic("No I/O APIC found on system.");

@@ -26,14 +26,11 @@ extern "C" void _start()
     Init::InitializeFlanterm((uint32_t *)fb.address, fb.width, fb.height, fb.pitch);
     Mem::InitializePMM(GlobalBootloaderData.memmap);
     Print(System28ASCII());
-    Log(KERNEL_LOG_SUCCESS, "Kernel initializing...\n");
-    Log(KERNEL_LOG_INFO, "Kernel: Number of CPUs: %d\n", GlobalBootloaderData.smp.cpu_count);
-    VMM::InitPaging(GlobalBootloaderData.memmap, GlobalBootloaderData.kernel_addr, GlobalBootloaderData.hhdm_response.offset);
+    VMM::InitPaging(GlobalBootloaderData.memmap, GlobalBootloaderData.kernel_addr);
     ACPI::InitializeACPI((uintptr_t)GlobalBootloaderData.rsdp_response.address);
     Mem::InitializeHeap(0x1000 * 10);
     CPU::SetupAllCPUs();
     Obj::HandleModuleObjects(GlobalBootloaderData.module_response);
-    Log(KERNEL_LOG_INFO, "Press the Delete key to reset the system.\n");
 
     while (true) {
         CPU::Halt();

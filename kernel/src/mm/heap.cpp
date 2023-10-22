@@ -54,7 +54,7 @@ static Node *FindSuitableNode(size_t size) {
                 uintptr_t nodeTop = (uintptr_t)ret + sizeof(Node) + size;
                 uintptr_t extraSize = ret->size - requiredSize;
 
-                InsertNode((void *)nodeTop, extraSize);
+                if (extraSize) InsertNode((void *)nodeTop, extraSize);
 
                 ret->size = requiredSize;
 

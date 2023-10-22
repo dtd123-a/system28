@@ -69,7 +69,7 @@ namespace Kernel::ACPI {
         GlobalRSDT = MemoryMapACPITable(GlobalRSDT);
 
         if (!SDTChecksum(GlobalRSDT)) {
-            Kernel::Log(KERNEL_LOG_FAIL, "Warning: Checksum failed on RSDT! ACPI features will not work.\n");
+            Log(KERNEL_LOG_FAIL, "Warning: Checksum failed on RSDT! ACPI features will not work.\n");
             RSDTPassedChecksum = false;
         }
     }
@@ -100,7 +100,7 @@ namespace Kernel::ACPI {
     // Thanks a lot to https://dox.ipxe.org/acpi__timer_8c_source.html and https://wiki.osdev.org/ACPI_Timer
     bool PMTMRSleep(size_t us) {
         if (GlobalFADT->PM_TMR_LEN != 4 || !GlobalFADT->PM_TMR_BLK) {
-            Kernel::Log(KERNEL_LOG_FAIL, "PM_TMR delay attemped but failed as timer is unavailable.");
+            Log(KERNEL_LOG_FAIL, "PM_TMR delay attemped but failed as timer is unavailable.");
             return false;
         }
         
@@ -122,57 +122,57 @@ namespace Kernel::ACPI {
         if (!GlobalFADT) Panic("ACPI: No FACP.");
         if (!SDTChecksum((SDTHeader *)GlobalFADT)) Kernel::Panic("ACPI: ACPI table has failed checksum test.");
 
-        Kernel::Log(KERNEL_LOG_INFO, "ACPI: Parsing ACPI \"FADT\" table\n");
+        Log(KERNEL_LOG_INFO, "ACPI: Parsing ACPI \"FADT\" table\n");
 
         switch (GlobalFADT->PreferredPowerManagementProfile) {
             case 1: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a desktop\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using a desktop\n");
                 break;
             }
             case 2: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a laptop\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using a laptop\n");
                 break;
             }
             case 3: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a workstation\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using a workstation\n");
                 break;
             }
             case 4: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a server\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using a server\n");
                 break;
             }
             case 5: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a SOHO server\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using a SOHO server\n");
                 break;
             }
             case 6: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using an appliance PC\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using an appliance PC\n");
                 break;
             }
             case 7: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a high-performance server\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using a high-performance server\n");
                 break;
             }
             case 8: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: You are using a tablet\n");
+                Log(KERNEL_LOG_INFO, "ACPI: You are using a tablet\n");
                 break;
             }
             default: {
-                Kernel::Log(KERNEL_LOG_INFO, "ACPI: Device type is undefined, or you are using an emulator.\n");
+                Log(KERNEL_LOG_INFO, "ACPI: Device type is undefined, or you are using an emulator.\n");
                 break;
             }
         }
 
         if (GlobalFADT->PM_TMR_LEN == 4) {
-            Kernel::Log(KERNEL_LOG_DEBUG, "PM_TMR supported\n");
+            Log(KERNEL_LOG_DEBUG, "PM_TMR supported\n");
         } else {
-            Kernel::Log(KERNEL_LOG_FAIL, "PM_TMR not supported\n");
+            Log(KERNEL_LOG_FAIL, "PM_TMR not supported\n");
         }
     }
 
     /* Performs a warm reboot using ACPI. Returns false if the operation could not be completed. */
     bool PerformACPIReboot() {
-        Kernel::Log(KERNEL_LOG_EVENT, "Attempting to perform ACPI system reset.\n");
+        Log(KERNEL_LOG_EVENT, "Attempting to perform ACPI system reset.\n");
 
         if (!GlobalFADT) return false;
         if (GlobalFADT->Revision < 2) return false;

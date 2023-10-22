@@ -11,8 +11,6 @@ extern bool SystemCrashFlag;
 
 extern "C" void DisablePIC();
 
-size_t TimerTicks = 0;
-
 __attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters *registers) {
     Kernel::CPU::ClearInterrupts();
     Kernel::PanicFromException(registers, 0);
@@ -33,8 +31,6 @@ __attribute__((interrupt)) void ExceptionHandler2(Interrupts::CInterruptRegister
 }
 
 __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *) {
-    TimerTicks++;
-
     TimerReset();
     LAPIC_EOI();
 }
@@ -102,13 +98,5 @@ namespace Kernel::CPU::Interrupts {
         /* Load IDT */
         asm ("lidt %0" : : "m" (IDTPtr));
         asm ("sti");
-    }
-
-    void ResetTimerTicks() {
-        TimerTicks = 0;
-    }
-
-    size_t GetTimerTicks() {
-        return TimerTicks;
     }
 }

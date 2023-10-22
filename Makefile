@@ -25,11 +25,13 @@ C_CPP_COMMONFLAGS += \
     -mno-red-zone \
     -mcmodel=kernel \
     -Ikernel/include \
-	-g
+	-g \
+	-Og \
 
 CPPFLAGS += \
 	-fno-exceptions \
 	-fno-rtti \
+	-fno-use-cxa-atexit
 
 LDFLAGS += \
     -nostdlib \
@@ -61,11 +63,11 @@ $(kbin): $(kobj)
 
 kernel/src/%.o: kernel/src/%.cpp
 	@echo CXX $<
-	@$(cpp) $(C_CPP_COMMONFLAGS) $(CPPFLAGS) -c $< -o $@ -g
+	@$(cpp) $(C_CPP_COMMONFLAGS) $(CPPFLAGS) -c $< -o $@
 
 kernel/src/%.o: kernel/src/%.c
 	@echo 'CC ' $<
-	@$(cc) $(C_CPP_COMMONFLAGS) -c $< -o $@ -g
+	@$(cc) $(C_CPP_COMMONFLAGS) -c $< -o $@
 
 kernel/src/%.o: kernel/src/%.asm
 	@echo 'AS ' $<
@@ -98,3 +100,7 @@ bootstrap:
 
 unbootstrap:
 	@rm -rf kernel/src/external_libs/flanterm
+
+.PHONY: ramdisk
+ramdisk:
+	@tar cvf ramdisk.tar ramdisk/

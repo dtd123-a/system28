@@ -7,27 +7,26 @@
 #include <hal/cpu/interrupt/idt.hpp>
 #include <mm/heap.hpp>
 
-enum KPanicType {
-    PANIC_CPU_EXCEPTION = 0,
-    PANIC_SOFT_ERROR = 1
-};
-
 namespace Kernel {
     __attribute__((noreturn)) void Panic(const char *error);
-    void PanicFromException(CPU::Interrupts::CInterruptRegisters *registers, int error_code);
+    __attribute__((noreturn)) void PanicFromException(CPU::Interrupts::CInterruptRegisters *registers, int error_code);
 
     namespace Lib {
         // A custom (not implementing std::vector, but still modelled after it) vector class.
         template <typename T> class Vector {
             // Private data
             T *Array = nullptr;
-            uint16_t CurrentCapacity = 0;
-            uint16_t CurrentElementCount = 0;
+            size_t CurrentCapacity = 0;
+            size_t CurrentElementCount = 0;
 
 public:
             Vector() {
                 Array = new T;
                 CurrentCapacity = 1;
+            }
+
+            ~Vector() {
+                delete Array;
             }
 
             // Adds an element to the end
@@ -41,11 +40,11 @@ public:
                 CurrentElementCount++;
             }
 
-            T at(size_t index) {
+            T & at(size_t index) {
                 if (index < CurrentCapacity) {
                     return Array[index];
                 } else {
-                    Kernel::Panic("Vector out of bounds in kernel mode!");
+                    Panic("[KERNEL BUG] Vector out of bounds in kernel mode!");
                 }
             }
 
@@ -70,8 +69,19 @@ public:
             }
 
             T & operator[](size_t index) {
-                /* operator[] does not perform bounds checking. */
-                return Array[index];
+                return at(index);
+            }
+
+            void remove(size_t index) {
+                if (index >= CurrentElementCount) {
+                    Panic("[KERNEL BUG] Vector out of bounds in kernel mode!");
+                }
+
+                for (size_t i = index; i < CurrentElementCount; i++) {
+                    at(i) = at(i + 1);
+                }
+
+                CurrentElementCount--;
             }
         };
     }

@@ -1,8 +1,9 @@
 /*
     * tar.cpp
-    * Tape Archive (TAR) ramdisk class definitions
+    * Unix Standard Tape Archive (USTAR) driver implementation
     * Created 30/09/2023
 */
+
 #include <obj/tar.hpp>
 #include <libs/string.hpp>
 #include <mm/mem.hpp>
@@ -29,7 +30,7 @@ struct USTARHeader {
     char Prefix[155];
 };
 
-/* Decodes Tar's 'octal string' method for encoding number data. */
+/* Decodes USTARs's 'octal string' method for encoding number data. */
 size_t DecodeTarNumeral(char value[]) {
     size_t ret = 0;
     size_t count = 1;
@@ -52,16 +53,27 @@ namespace Kernel::Obj {
         }
 
         while (*(uint8_t *)Header != 0) {
-            Kernel::Log(KERNEL_LOG_INFO, "Found file object (name = %s, size = %d byte(s), Base in RAM = 0x%x)\n", Header->FileName, DecodeTarNumeral(Header->Size), (uint8_t *)Header + 512);
+            /* Remove any trailing slashes at the end of directory names. */
+            /* Before USTAR type attribute this was how directories were recorded. */
+            int len = strlen(Header->FileName);
+            if (Header->FileName[len - 1] == '/') {
+                Header->FileName[len - 1] = '\0';
+            }
 
             Files.push_back(File {
                 .Path = (const char *)Header->FileName,
+                .LinksTo = nullptr,
                 .FileSize = DecodeTarNumeral(Header->Size),
+                .Type = Header->Typeflag,
                 .FileAddress = (uint8_t *)Header + 512
             });
 
             Header = (USTARHeader *)((uint8_t *)Header + ALIGN_UP(DecodeTarNumeral(Header->Size) + 512, 512));
         }
+    }
+
+    TarObject::~TarObject() {
+        Files.~Vector();
     }
 
     TarObject::File TarObject::Get(const char *Path) {
@@ -71,7 +83,7 @@ namespace Kernel::Obj {
             }
         }
 
-        return File {0, 0, 0};
+        return File {0, 0, 0, 0, 0};
     }
 
     Lib::Vector<TarObject::File> TarObject::GetAll() {
