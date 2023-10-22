@@ -12,4 +12,4 @@ A project aiming to create a new workstation operating system with a kernel writ
 - Basic ACPI support (for APICs, reboot, and power info)
 
 ## 🕰️ History
-System/28 is a rewrite of [System/14](www.github.com/danthedev123/system14_archive), a project I started working on in May 2023. Before that, I had always been interested in OSDev and had also made some crappy projects that could barely do anything. System/14 is the first project that could do scheduling or any real OS functions. I decided to rewrite it for code quality reasons.
+System/28 is a rewrite of [System/14](https://www.github.com/danthedev123/system14_archive), a project I started working on in May 2023. Before that, I had always been interested in OSDev and had also made some crappy projects that could barely do anything. System/14 is the first project that could do scheduling or any real OS functions. I decided to rewrite it for code quality reasons.
