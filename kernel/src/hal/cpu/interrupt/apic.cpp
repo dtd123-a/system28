@@ -19,6 +19,7 @@ extern BootloaderData GlobalBootloaderData;
 constexpr size_t APIC_TMR_MASKED = 0x10000;
 constexpr size_t APIC_TMR_MODE_PERIODIC = 0x20000;
 
+/* Global timer flags filled by the calibration module */
 struct {
     uint32_t LVTRegister;
     uint32_t DivisorRegister;
@@ -26,11 +27,17 @@ struct {
 } GlobalTimerFlags;
 
 enum LAPICRegisters {
+    /* End-Of-Interrupt register */
     EOI = 0xB0,
+    /* Spurious interrupt register */
     Spurious = 0xF0,
+    /* Keeps the interrupt vector number & mode for the timer. */
     LVTTimer = 0x320,
+    /* Timer's divisor */
     TimerDiv = 0x3E0,
+    /* Timer count (Write) */
     TimerInitCount = 0x380,
+    /* Timer count (Read) */
     TimerCurrentCount = 0x390
 };
 
@@ -140,6 +147,7 @@ public:
     }
 
     void CreateRedirectionEntry(RedirectionEntry redirEntry, int irq) {
+        /* Register an IRQ taking into account Interrupt Source Overrides */
         for (size_t i = 0; i < GlobalISOStructures->size(); i++) {
             InterruptSourceOverride *iso = (InterruptSourceOverride *)GlobalISOStructures->at(i);
 
@@ -167,18 +175,26 @@ uint32_t LAPICRead(void *base, uint32_t reg) {
 
 namespace Kernel::CPU {
     void LAPIC_EOI() {
+        /* Send an EOI (End of Interrupt) signal to the LAPIC. */
         if (GlobalMADT->LAPICAddress) LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, EOI, 0);
     }
 
     void TimerReset() {
         if (GlobalMADT->LAPICAddress) {
+            /* Reset the timer's count variable. */
             LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
         }
     }
 
     void InitializeMADT() {
+        /* Get the Multiple APIC Descriptor Table (MADT) from ACPI */
         GlobalMADT = (MADTHeader *)GetACPITable("APIC");
-        if (!GlobalMADT) Panic("No APIC present on the system.\n");
+
+        /* If there is no MADT, panic. */
+        if (!GlobalMADT) Panic("No MADT (Multiple APIC Descriptor Table) present in the system ACPI tables.\n");
+
+        /* Map the Local APIC base into virtual memory so CPUs can access their APIC data */
+        VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
     }
     
     void FindAllInterruptControllers(Lib::Vector<InterruptControllerStructure *> *vec, uint8_t Type) {
@@ -196,52 +212,69 @@ namespace Kernel::CPU {
     }
 
     void InitializeIOAPIC() {
+        /* Get the Higher Half Direct Mapping offset from the bootloader data */
         uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response.offset;
 
+        /* Set up a vector containing all of the I/O APIC interrupt controller structures */
         Lib::Vector<InterruptControllerStructure *> ioapic_vec;
         FindAllInterruptControllers(&ioapic_vec, 0x1);
 
-        InterruptControllerStructure *ioapic_structure = ioapic_vec.at(0);
-        Kernel::Log(KERNEL_LOG_DEBUG, "Found %d I/O APICs on the system.\n", ioapic_vec.size());
-        GlobalISOStructures = new Lib::Vector<InterruptControllerStructure *>();
-        FindAllInterruptControllers(GlobalISOStructures, 0x2);
-
-        if (!ioapic_structure) {
+        /* Panic if there are no I/O APICs, as they are crucial to recieving interrupts. */
+        if (!ioapic_vec.size()) {
             Panic("No I/O APIC found on system.");
         }
+
+        /* For now use only the first I/O APIC, although systems can have multiple. */
+        InterruptControllerStructure *ioapic_structure = ioapic_vec.at(0);
+
+        /* Set up a vector containing interrupt source overrides*/
+        GlobalISOStructures = new Lib::Vector<InterruptControllerStructure *>();
+        FindAllInterruptControllers(GlobalISOStructures, 0x2);
         
+        /* Set up a new I/O APIC object from our first I/O APIC */
         GlobalIOAPIC = new IOAPIC((void *)ioapic_structure);
 
+        /* Map the I/O APIC base into the higher half*/
         uintptr_t ioapic_base = GlobalIOAPIC->GetIOAPICBase();
         VMM::MemoryMap(nullptr, ioapic_base + hhdm_base, ioapic_base, false);
+
+        /* Now set the MMIO address to use the HHDM mapping */
         GlobalIOAPIC->SetIOAPICBase(ioapic_base + hhdm_base);
         
-        /* PS/2 Keyboard */
+        /* Initialize the keyboard device */
         GlobalIOAPIC->CreateRedirectionEntry(IOAPIC::RedirectionEntry {0x21, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 1);
     }
 
     void InitializeLAPIC() {
+        /* Specify a spurious interrupt */
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
-
+        
+        /* Set up the LAPIC timer's registers to match our calibrated data */
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, GlobalTimerFlags.LVTRegister);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, GlobalTimerFlags.DivisorRegister);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
     }
 
-    void CalibrateTimer() {
-        VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
-
-        // We are setting up the timer for the BSP, then deleting it after.
+    bool CalibrateTimer() {
+        /* Set up the initial count and divisor registers */
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0x3);
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 0xffffffff);
-        ACPI::PMTMRSleep(50000); // 50000us = 50ms
-        // Stop the timer
+
+        /* Sleep for 50 ms */
+        if (!ACPI::PMTMRSleep(50000)) return false; // 50000us = 50ms
+        
+        /* Stop the LAPIC timer*/
         LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, APIC_TMR_MASKED);
 
+        /* Read the count register*/
         uint32_t calibration = 0xffffffff - LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerCurrentCount);
         
+        /* Set up our freshly calibrated data */
         GlobalTimerFlags.LVTRegister = 0x20 | APIC_TMR_MODE_PERIODIC;
         GlobalTimerFlags.DivisorRegister = 0x3;
         GlobalTimerFlags.InitCountRegister = calibration;
+
+        /* Report success */
+        return true;
     }
 }

@@ -44,7 +44,7 @@ ASMFLAGS += \
     -Wall \
     -f elf64
 
-QEMUFLAGS += -smp 4 -m 1G -cdrom root.iso -d int -D qemu.log -no-shutdown -no-reboot --bios /usr/share/ovmf/OVMF.fd
+QEMUFLAGS += -enable-kvm -smp 4 -m 1G -cdrom root.iso -d int -D qemu.log -no-shutdown -no-reboot --bios /usr/share/ovmf/OVMF.fd
 
 kcsources = $(call rwildcard,kernel/src,*.cpp)
 kcsources_c = $(call rwildcard,kernel/src,*.c)

@@ -14,22 +14,42 @@
 #include <logo.h>
 #include <obj/mod.hpp>
 
+/* Global kernel boot loader information state */
 BootloaderData GlobalBootloaderData;
+
 using namespace Kernel;
 
+/* The procedure called by the boot loader */
 extern "C" void _start()
 {
     GlobalBootloaderData = GetBootloaderData();
     
+    /* Sets up the Global Descriptor Table & Exception Handling for the BSP. */
     CPU::Initialize();
+    
+    /* Set up the terminal emulator */
     limine_framebuffer fb = *GlobalBootloaderData.fbData.framebuffers[0];
     Init::InitializeFlanterm((uint32_t *)fb.address, fb.width, fb.height, fb.pitch);
+
+    /* Initialize the Physical Memory Allocator */
     Mem::InitializePMM(GlobalBootloaderData.memmap);
+
+    /* Print the System/28 splash screen */
     Print(System28ASCII());
-    VMM::InitPaging(GlobalBootloaderData.memmap, GlobalBootloaderData.kernel_addr);
+
+    /* Initialize virtual memory paging */
+    VMM::InitPaging(GlobalBootloaderData.memmap, GlobalBootloaderData.kernel_addr, GlobalBootloaderData.hhdm_response.offset);
+    
+    /* Initialize ACPI */
     ACPI::InitializeACPI((uintptr_t)GlobalBootloaderData.rsdp_response.address);
+    
+    /* Set up the heap manager */
     Mem::InitializeHeap(0x1000 * 10);
+
+    /* Set up the rest of the CPU cores */
     CPU::SetupAllCPUs();
+
+    /* Handle any modules passed into the kernel */
     Obj::HandleModuleObjects(GlobalBootloaderData.module_response);
 
     while (true) {

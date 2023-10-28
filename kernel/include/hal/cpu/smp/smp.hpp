@@ -5,9 +5,9 @@
 */
 #pragma once
 #include <limine.h>
+#include <stdint.h>
 
 namespace Kernel::CPU {
-    void CPUJump(unsigned int cpu, void* ptr);
-    void CPUShutdown();
+    void CPUJump(uint32_t Core, void* Target);
     void SetupAllCPUs();
 }

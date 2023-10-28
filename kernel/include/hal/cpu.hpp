@@ -13,6 +13,5 @@ namespace Kernel {
         inline void SetInterrupts() { asm volatile ("sti"); }
 
         void Initialize();
-        void SetCrash();
     }
 }

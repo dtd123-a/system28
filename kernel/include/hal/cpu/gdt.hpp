@@ -7,7 +7,6 @@
 #include <stdint.h>
 
 namespace Kernel::CPU::GDT {
-
     struct SegmentDescriptor
     {
         uint16_t Limit;
@@ -33,6 +32,10 @@ namespace Kernel::CPU::GDT {
         uint64_t Addr;
     }__attribute__((packed));
 
+    /*
+        NOTE: Expects CS selector to be 0x08 and DS selector to be 0x10
+    */
     extern "C" void LoadGDT(GDTR *);
     void Initialize();
+    void Load();
 }

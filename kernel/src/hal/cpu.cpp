@@ -7,17 +7,12 @@
 #include <hal/cpu/interrupt/idt.hpp>
 #include <hal/cpu.hpp>
 
-bool SystemCrashFlag = false;
-
 namespace Kernel::CPU {
     void Initialize() {
-        Kernel::CPU::GDT::Initialize();
-        Kernel::CPU::Interrupts::Initialize();
-        Kernel::CPU::Interrupts::Install();
-    }
-
-    void SetCrash() {
-        SystemCrashFlag = true;
+        GDT::Initialize();
+        GDT::Load();
+        Interrupts::Initialize();
+        Interrupts::Install();
     }
 }
 

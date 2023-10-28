@@ -16,8 +16,6 @@ namespace Kernel::Obj {
     struct InternalModule {
         void *VirtualAddress;
         const char *Path;
-        const char *CommandLine;
-        size_t MediaType;
     };
 
     Lib::Vector<InternalModule> *Modules;
@@ -38,8 +36,6 @@ namespace Kernel::Obj {
             Modules->push_back(InternalModule {
                 .VirtualAddress = (void *)virtAddr,
                 .Path = moduleStructure.modules[i]->path,
-                .CommandLine = moduleStructure.modules[i]->cmdline,
-                .MediaType = moduleStructure.modules[i]->media_type
             });
         }
 

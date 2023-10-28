@@ -27,19 +27,21 @@ class GlobalDescriptorTable {
         GDTPtr.Size = sizeof(GDT) - 1;
         GDTPtr.Addr = (uint64_t)&GDT;
     }
+
+    void Install() {
+        LoadGDT(&GDTPtr); 
+    }
 };
 
 GlobalDescriptorTable GlobalGDT;
 
 namespace Kernel::CPU::GDT {
-    bool GlobalGDTSetup = false;
-
     void Initialize()
     {
-        if (!GlobalGDTSetup) {
-            GlobalGDT.Setup();
-            GlobalGDTSetup = true;
-        }
-        LoadGDT(&GlobalGDT.GDTPtr);
+        GlobalGDT.Setup();
+    }
+
+    void Load() {
+        GlobalGDT.Install();
     }
 }

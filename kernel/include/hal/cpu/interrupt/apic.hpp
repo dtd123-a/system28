@@ -35,5 +35,5 @@ namespace Kernel::CPU {
     void LAPIC_EOI();
     void TimerReset();
     void UninstallLAPICTimer();
-    void CalibrateTimer();
+    bool CalibrateTimer();
 }

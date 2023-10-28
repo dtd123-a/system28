@@ -37,7 +37,6 @@ namespace Kernel {
         Kernel::Log(KERNEL_LOG_FAIL, "A serious error has occured in the kernel component.\n");
         Kernel::Log(KERNEL_LOG_FAIL, "Error string = %s\n", error);
 
-        CPU::SetCrash();
         SpinlockRelease(&PanicLock);
 
         while (true) {
@@ -59,7 +58,6 @@ namespace Kernel {
         registers->ss,
         error_code);
 
-        CPU::SetCrash();
         SpinlockRelease(&PanicLock2);
 
         while (true) {

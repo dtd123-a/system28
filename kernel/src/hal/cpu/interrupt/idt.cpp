@@ -7,8 +7,6 @@
 
 using namespace Kernel::CPU;
 
-extern bool SystemCrashFlag;
-
 extern "C" void DisablePIC();
 
 __attribute__((interrupt)) void ExceptionHandler(Interrupts::CInterruptRegisters *registers) {
@@ -36,10 +34,17 @@ __attribute__((interrupt)) void TimerInterrupt(Interrupts::CInterruptRegisters *
 }
 
 constexpr uint8_t DeleteScancode = 0x53;
+constexpr uint8_t EscapeScancode = 0x01;
+bool DeletePressed = false;
 __attribute__((interrupt)) void KeyboardInterrupt(Interrupts::CInterruptRegisters *) {
     uint8_t scan = Kernel::IO::inb(0x60);
 
     if (scan == DeleteScancode) {
+        Kernel::Log(KERNEL_LOG_DEBUG, "[ACPI Debug] Press Escape to reboot the PC using ACPI.\n");
+        DeletePressed = true;
+    }
+
+    if (scan == EscapeScancode && DeletePressed) {
         if (!Kernel::ACPI::PerformACPIReboot()) Kernel::Log(KERNEL_LOG_FAIL, "Unable to perform ACPI reboot.\n");
     }
 
@@ -89,13 +94,15 @@ namespace Kernel::CPU::Interrupts {
         IDTPtr.Limit = 0xfff;
         IDTPtr.Addr = (uint64_t)&IDT;
 
+        /* Mask all interrupts */
         DisablePIC();
         // TODO we also need to remap the PIC so if it gives spurious interrupts in the future
         //      it doesn't clash with exception interrupts.
+        // Note: Not sure how common/frequent this is, or if it happens at all with modern PCs.
     }
 
     void Install() {
-        /* Load IDT */
+        /* Load IDT and enable interrupts */
         asm ("lidt %0" : : "m" (IDTPtr));
         asm ("sti");
     }
