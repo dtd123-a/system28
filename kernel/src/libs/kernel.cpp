@@ -1,6 +1,6 @@
 /*
     * kernel.cpp
-    * Implements some kernel panic functions.
+    * Implements kernel utility libraries
     * Created 12/09/23 DanielH
 */
 #include <terminal/terminal.hpp>
@@ -45,7 +45,7 @@ namespace Kernel {
     }
 
     SPINLOCK_CREATE(PanicLock2);
-    void PanicFromException(CPU::Interrupts::CInterruptRegisters *registers, int error_code) {
+    __attribute__((noreturn)) void PanicFromException(CPU::Interrupts::CInterruptRegisters *registers, int error_code) {
         SpinlockAquire(&PanicLock2);
 
         Kernel::Log(KERNEL_LOG_FAIL, "** STOP !! **\n");

@@ -44,7 +44,7 @@ bool SDTChecksum(SDTHeader *tableHeader) {
 
 SDTHeader *MemoryMapACPITable(SDTHeader *tableHeader) {
     /* Get the HHDM base from the bootloader data */
-    uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response.offset;
+    uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response->offset;
 
     /* Get the physical address of the table header */
     uintptr_t tableHeaderPhys = (uintptr_t)tableHeader;

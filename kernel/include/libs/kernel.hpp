@@ -1,6 +1,6 @@
 /*
     * kernel.hpp
-    * Implements some kernel panic functions.
+    * Implements kernel utility libraries
     * Created 12/09/23 DanielH
 */
 #pragma once

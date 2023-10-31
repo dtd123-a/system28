@@ -121,6 +121,9 @@ namespace Kernel::VMM {
         }
 
         kernelPML4 = pml4;
-        LoadCR3(pml4);
+    }
+
+    void LoadKernelCR3() {
+        LoadCR3(kernelPML4);
     }
 }

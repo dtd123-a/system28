@@ -23,26 +23,29 @@ using namespace Kernel;
 extern "C" void _start()
 {
     GlobalBootloaderData = GetBootloaderData();
-    
+
     /* Sets up the Global Descriptor Table & Exception Handling for the BSP. */
     CPU::Initialize();
-    
+
     /* Set up the terminal emulator */
-    limine_framebuffer fb = *GlobalBootloaderData.fbData.framebuffers[0];
+    limine_framebuffer fb = *GlobalBootloaderData.fbData->framebuffers[0];
     Init::InitializeFlanterm((uint32_t *)fb.address, fb.width, fb.height, fb.pitch);
 
     /* Initialize the Physical Memory Allocator */
-    Mem::InitializePMM(GlobalBootloaderData.memmap);
+    Mem::InitializePMM(*GlobalBootloaderData.memmap);
 
     /* Print the System/28 splash screen */
     Print(System28ASCII());
 
     /* Initialize virtual memory paging */
-    VMM::InitPaging(GlobalBootloaderData.memmap, GlobalBootloaderData.kernel_addr, GlobalBootloaderData.hhdm_response.offset);
-    
+    VMM::InitPaging(*GlobalBootloaderData.memmap, *GlobalBootloaderData.kernel_addr, GlobalBootloaderData.hhdm_response->offset);
+
+    /* Switch to the kernel's page tables */
+    VMM::LoadKernelCR3();
+
     /* Initialize ACPI */
-    ACPI::InitializeACPI((uintptr_t)GlobalBootloaderData.rsdp_response.address);
-    
+    ACPI::InitializeACPI((uintptr_t)GlobalBootloaderData.rsdp_response->address);
+
     /* Set up the heap manager */
     Mem::InitializeHeap(0x1000 * 10);
 
@@ -50,7 +53,7 @@ extern "C" void _start()
     CPU::SetupAllCPUs();
 
     /* Handle any modules passed into the kernel */
-    Obj::HandleModuleObjects(GlobalBootloaderData.module_response);
+    Obj::HandleModuleObjects(*GlobalBootloaderData.module_response);
 
     while (true) {
         CPU::Halt();

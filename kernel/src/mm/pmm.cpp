@@ -4,6 +4,10 @@
     * Created 02/09/2023
 */
 
+/*
+    * TODO: Rewrite all of this, there is a major flaw, which is that it only allocates from the largest block
+*/
+
 #include <limine.h>
 #include <stddef.h>
 #include <terminal/terminal.hpp>
@@ -17,38 +21,38 @@ namespace Kernel::Mem {
         bool free : 1;
     };
 
-    struct Page* FrameList = {0};
+    struct Page *FrameList = {0};
     uint32_t FrameListSize = 0;
-    uint32_t LargestMemSegSize = 0;
+    uint32_t MemSegSize = 0;
 
     void InitializePMM(limine_memmap_response mmap) {
-        uint32_t largestEntryLength = 0;
-        limine_memmap_entry largestEntry;
+        uint32_t LargestEntryLength = 0;
+        limine_memmap_entry *LargestEntry = nullptr;
 
         for (size_t i = 0; i < mmap.entry_count; i++) {
             switch (mmap.entries[i]->type) {
                 case LIMINE_MEMMAP_USABLE:
                 {
-                    if (mmap.entries[i]->length > largestEntryLength) {
-                        largestEntryLength = mmap.entries[i]->length;
-                        largestEntry = *mmap.entries[i];
+                    if (mmap.entries[i]->length > LargestEntryLength) {
+                        LargestEntryLength = mmap.entries[i]->length;
+                        LargestEntry = mmap.entries[i];
                     }
                     break;
                 }
             }
         }
-
-        if (!largestEntry.length) {
-            Kernel::Panic("No usable memory was found on the system.");
+        
+        if (!LargestEntry) {
+            Panic("No usable memory was found on the system.");
         }
 
-        FrameList = (struct Page *)largestEntry.base;
-        uintptr_t nextAddr = ALIGN_UP(largestEntry.base + (sizeof(Page) * (largestEntry.length / 0x1000)), 0x1000);
-        FrameListSize = nextAddr - largestEntry.base;
+        FrameList = (struct Page *)LargestEntry->base;
+        uintptr_t nextAddr = ALIGN_UP(LargestEntry->base + (sizeof(Page) * (LargestEntry->length / 0x1000)), 0x1000);
+        FrameListSize = nextAddr - LargestEntry->base;
 
-        LargestMemSegSize = largestEntry.length - FrameListSize;
+        MemSegSize = LargestEntry->length - FrameListSize;
 
-        for (size_t i = 0; i < LargestMemSegSize / 0x1000; i++) {
+        for (size_t i = 0; i < MemSegSize / 0x1000; i++) {
             Page page = {
                 .ptr = (void *)nextAddr,
                 .free = true
@@ -58,12 +62,12 @@ namespace Kernel::Mem {
         }
     }
 
-    void *AllocatePageExt(bool DoMemset) {
-        for (size_t i = 0; i < LargestMemSegSize / 0x1000; i++) {
+    void *AllocatePage() {
+        for (size_t i = 0; i < MemSegSize / 0x1000; i++) {
             if (FrameList[i].free) {
                 FrameList[i].free = false;
                 
-                if (DoMemset) memset((void*)FrameList[i].ptr, 0, 0x1000);
+                memset((void*)FrameList[i].ptr, 0, 0x1000);
                 return FrameList[i].ptr;
             }
         }
@@ -71,12 +75,8 @@ namespace Kernel::Mem {
         return nullptr;
     }
 
-    void *AllocatePage() {
-        return AllocatePageExt(true);
-    }
-
     void FreePage(void *addr) {
-        for (size_t i = 0; i < LargestMemSegSize / 0x1000; i++) {
+        for (size_t i = 0; i < MemSegSize / 0x1000; i++) {
             if ((FrameList[i].ptr = addr)) {
                 FrameList[i].free = true;
             }

@@ -26,7 +26,7 @@ namespace Kernel::Obj {
 
         for (size_t i = 0; i < moduleStructure.module_count; i++) {
             uintptr_t virtAddr = (uintptr_t)moduleStructure.modules[i]->address;
-            uintptr_t physAddr = virtAddr - GlobalBootloaderData.hhdm_response.offset;
+            uintptr_t physAddr = virtAddr - GlobalBootloaderData.hhdm_response->offset;
             size_t size = moduleStructure.modules[i]->size;
 
             for (size_t i = 0; i < size; i += 4096) {

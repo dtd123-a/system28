@@ -55,13 +55,13 @@ static volatile struct limine_module_request module_request = {
 BootloaderData GetBootloaderData()
 {
     BootloaderData ret = {
-        .fbData = *framebuffer_request.response,
-        .memmap = *memmap_request.response,
-        .smp = *smp_request.response,
-        .kernel_addr = *kaddr_request.response,
-        .hhdm_response = *hhdm_request.response,
-        .rsdp_response = *rsdp_request.response,
-        .module_response = *module_request.response
+        .fbData = framebuffer_request.response,
+        .memmap = memmap_request.response,
+        .smp = smp_request.response,
+        .kernel_addr = kaddr_request.response,
+        .hhdm_response = hhdm_request.response,
+        .rsdp_response = rsdp_request.response,
+        .module_response = module_request.response
     };
 
     return ret;

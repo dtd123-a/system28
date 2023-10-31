@@ -10,6 +10,5 @@
 namespace Kernel::Mem {
     void InitializePMM(limine_memmap_response mmap);
     void* AllocatePage();
-    void *AllocatePageExt(bool DoMemset);
     void FreePage(void *addr);
 };

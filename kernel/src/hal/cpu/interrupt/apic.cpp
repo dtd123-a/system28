@@ -213,7 +213,7 @@ namespace Kernel::CPU {
 
     void InitializeIOAPIC() {
         /* Get the Higher Half Direct Mapping offset from the bootloader data */
-        uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response.offset;
+        uintptr_t hhdm_base = GlobalBootloaderData.hhdm_response->offset;
 
         /* Set up a vector containing all of the I/O APIC interrupt controller structures */
         Lib::Vector<InterruptControllerStructure *> ioapic_vec;
