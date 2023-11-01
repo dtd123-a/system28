@@ -19,6 +19,8 @@ extern BootloaderData GlobalBootloaderData;
 constexpr size_t APIC_TMR_MASKED = 0x10000;
 constexpr size_t APIC_TMR_MODE_PERIODIC = 0x20000;
 
+uintptr_t LocalAPICBase = 0;
+
 /* Global timer flags filled by the calibration module */
 struct {
     uint32_t LVTRegister;
@@ -176,13 +178,13 @@ uint32_t LAPICRead(void *base, uint32_t reg) {
 namespace Kernel::CPU {
     void LAPIC_EOI() {
         /* Send an EOI (End of Interrupt) signal to the LAPIC. */
-        if (GlobalMADT->LAPICAddress) LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, EOI, 0);
+        if (GlobalMADT->LAPICAddress) LAPICWrite((void *)LocalAPICBase, EOI, 0);
     }
 
     void TimerReset() {
         if (GlobalMADT->LAPICAddress) {
             /* Reset the timer's count variable. */
-            LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
+            LAPICWrite((void *)LocalAPICBase, TimerInitCount, GlobalTimerFlags.InitCountRegister);
         }
     }
 
@@ -193,8 +195,11 @@ namespace Kernel::CPU {
         /* If there is no MADT, panic. */
         if (!GlobalMADT) Panic("No MADT (Multiple APIC Descriptor Table) present in the system ACPI tables.\n");
 
+        /* Set the Local APIC base as the physical LAPIC base + the HHDM offset */
+        LocalAPICBase = GlobalMADT->LAPICAddress + GlobalBootloaderData.hhdm_response->offset;
+
         /* Map the Local APIC base into virtual memory so CPUs can access their APIC data */
-        VMM::MemoryMap(nullptr, (uintptr_t)GlobalMADT->LAPICAddress, (uintptr_t)GlobalMADT->LAPICAddress, false);
+        VMM::MemoryMap(nullptr, LocalAPICBase, (uintptr_t)GlobalMADT->LAPICAddress, false);
     }
     
     void FindAllInterruptControllers(Lib::Vector<InterruptControllerStructure *> *vec, uint8_t Type) {
@@ -247,27 +252,27 @@ namespace Kernel::CPU {
 
     void InitializeLAPIC() {
         /* Specify a spurious interrupt */
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious, LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, Spurious) | (1 << 8) | 0xff);
+        LAPICWrite((void *)LocalAPICBase, Spurious, LAPICRead((void *)LocalAPICBase, Spurious) | (1 << 8) | 0xff);
         
         /* Set up the LAPIC timer's registers to match our calibrated data */
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, GlobalTimerFlags.LVTRegister);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, GlobalTimerFlags.DivisorRegister);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, GlobalTimerFlags.InitCountRegister);
+        LAPICWrite((void *)LocalAPICBase, LVTTimer, GlobalTimerFlags.LVTRegister);
+        LAPICWrite((void *)LocalAPICBase, TimerDiv, GlobalTimerFlags.DivisorRegister);
+        LAPICWrite((void *)LocalAPICBase, TimerInitCount, GlobalTimerFlags.InitCountRegister);
     }
 
     bool CalibrateTimer() {
         /* Set up the initial count and divisor registers */
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerDiv, 0x3);
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerInitCount, 0xffffffff);
+        LAPICWrite((void *)LocalAPICBase, TimerDiv, 0x3);
+        LAPICWrite((void *)LocalAPICBase, TimerInitCount, 0xffffffff);
 
         /* Sleep for 50 ms */
         if (!ACPI::PMTMRSleep(50000)) return false; // 50000us = 50ms
         
         /* Stop the LAPIC timer*/
-        LAPICWrite((void *)(uintptr_t)GlobalMADT->LAPICAddress, LVTTimer, APIC_TMR_MASKED);
+        LAPICWrite((void *)LocalAPICBase, LVTTimer, APIC_TMR_MASKED);
 
         /* Read the count register*/
-        uint32_t calibration = 0xffffffff - LAPICRead((void *)(uintptr_t)GlobalMADT->LAPICAddress, TimerCurrentCount);
+        uint32_t calibration = 0xffffffff - LAPICRead((void *)LocalAPICBase, TimerCurrentCount);
         
         /* Set up our freshly calibrated data */
         GlobalTimerFlags.LVTRegister = 0x20 | APIC_TMR_MODE_PERIODIC;
