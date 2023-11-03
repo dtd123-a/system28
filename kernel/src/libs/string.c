@@ -21,14 +21,25 @@ int strncmp(const char *str1, const char *str2, int n) {
 }
 
 int strlen(const char *str) {
-    int n = 0;
+    int i = 0;
 
     while (*str != '\0') {
-        n++;
+        i++;
         str++;
     }
 
-    return n;
+    return i;
+}
+
+int strnlen(const char *str, int n) {
+    int i = 0;
+
+    while (i < n && *str != '\0') {
+        i++;
+        str++;
+    }
+
+    return i;
 }
 
 const char *strcpy(char *dest, const char *src) {

@@ -55,7 +55,7 @@ namespace Kernel::Obj {
         while (*(uint8_t *)Header != 0) {
             /* Remove any trailing slashes at the end of directory names. */
             /* Before USTAR type attribute this was how directories were recorded. */
-            int len = strlen(Header->FileName);
+            int len = strnlen(Header->FileName, 100);
             if (Header->FileName[len - 1] == '/') {
                 Header->FileName[len - 1] = '\0';
             }
