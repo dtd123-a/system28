@@ -10,6 +10,7 @@
 #include <mm/heap.hpp>
 #include <terminal/terminal.hpp>
 #include <hal/spinlock.hpp>
+#include <hal/vmm.hpp>
 
 struct Node {
     size_t size;
@@ -28,8 +29,9 @@ static void InsertNode(void *base, size_t size) {
     head.next = node;
 }
 
-static int ExpandHeap(size_t pageCount) {
-    void *start = Kernel::Mem::AllocatePage();
+static size_t ExpandHeap(size_t pageCount) {
+    /* The physical memory manager returns physical memory addresss. */
+    void *start = (void *)HHDMPhysToVirt((uintptr_t)Kernel::Mem::AllocatePage());
     if (!start) return 0;
 
     size_t i;
@@ -73,16 +75,11 @@ static Node *FindSuitableNode(size_t size) {
 namespace Kernel::Mem {
     void InitializeHeap(size_t heapSize) {
         if (!heapSize) return;
-        head.next = (Node *)AllocatePage();
+        size_t pages = heapSize / 4096;
 
-        size_t i;
-        for (i = 0; i < heapSize - 4096; i += 4096) {
-            if (!AllocatePage()) {
-                Kernel::Log(KERNEL_LOG_FAIL, "Warning, initial heap size request was not met.");
-                break;
-            }
+        if (ExpandHeap(pages) < pages) {
+            Log(KERNEL_LOG_DEBUG, "Warning: Initial heap size request was not met (%d pages).", heapSize);
         }
-        head.next->size = i + 4096;
     }
 
     SPINLOCK_CREATE(malloc_spinlock);

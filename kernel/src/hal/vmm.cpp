@@ -36,7 +36,7 @@ static PageTable *GetNextLevel(PageTable *current_level, size_t entry) {
     if (!current_level) return nullptr;
 
     if (!current_level->entries[entry].Present) {
-        void *new_entry = (void *)HHDMVirtToPhys((uintptr_t)Kernel::Mem::AllocatePage());
+        void *new_entry = Kernel::Mem::AllocatePage();
         if (!new_entry) return nullptr;
         if (!IsAligned((uintptr_t)new_entry, 0x1000)) return nullptr;
 
@@ -90,7 +90,7 @@ namespace Kernel::VMM {
         limine_memmap_response memmap,
         limine_kernel_address_response kaddr
     ) {
-        PageTable *pml4 = (PageTable *)Kernel::Mem::AllocatePage();
+        PageTable *pml4 = (PageTable *)HHDMPhysToVirt((uintptr_t)Kernel::Mem::AllocatePage());
         if (!pml4) {
             Panic("Unable to allocate memory for page map.");
         }
@@ -121,7 +121,7 @@ namespace Kernel::VMM {
         }
 
         kernelPML4 = pml4;
-    }
+   }
 
     void LoadKernelCR3() {
         LoadCR3((void *)HHDMVirtToPhys((uintptr_t)kernelPML4));

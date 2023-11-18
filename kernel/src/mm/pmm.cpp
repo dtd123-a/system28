@@ -47,8 +47,8 @@ namespace Kernel::Mem {
         }
 
         FrameList = (struct Page *)HHDMPhysToVirt(LargestEntry->base);
-        uintptr_t nextAddr = ALIGN_UP((uint64_t)FrameList + (sizeof(Page) * (LargestEntry->length / 0x1000)), 0x1000);
-        FrameListSize = nextAddr - (uint64_t)FrameList;
+        uintptr_t nextAddr = ALIGN_UP((uint64_t)LargestEntry->base + (sizeof(Page) * (LargestEntry->length / 0x1000)), 0x1000);
+        FrameListSize = nextAddr - (uint64_t)LargestEntry->base;
 
         MemSegSize = LargestEntry->length - FrameListSize;
 
@@ -67,7 +67,7 @@ namespace Kernel::Mem {
             if (FrameList[i].free) {
                 FrameList[i].free = false;
                 
-                memset((void*)FrameList[i].ptr, 0, 0x1000);
+                memset((void*)HHDMPhysToVirt((uintptr_t)FrameList[i].ptr), 0, 0x1000);
                 return FrameList[i].ptr;
             }
         }
