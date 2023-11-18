@@ -64,10 +64,6 @@ public:
                 return at(CurrentElementCount - 1);
             }
 
-            T *data() {
-                return Array;
-            }
-
             T & operator[](size_t index) {
                 return at(index);
             }

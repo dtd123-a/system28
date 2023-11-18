@@ -10,29 +10,42 @@
 #include <stddef.h>
 #include <mm/mem.hpp>
 #include <libs/kernel.hpp>
+#include <early/bootloader_data.hpp>
+
+extern BootloaderData GlobalBootloaderData;
 
 PageTable *kernelPML4 = nullptr;
 
-static bool is_aligned(uintptr_t addr, size_t boundary)
-{
+/* Tests for alignment. */
+static bool IsAligned(uintptr_t addr, size_t boundary) {
     if ((addr % boundary) == 0) return true;
     return false;
+}
+
+/* Converts an HHDM virtual address to a physical address */
+uintptr_t HHDMVirtToPhys(uintptr_t virt) {
+    return virt - GlobalBootloaderData.hhdm_response->offset;
+}
+
+/* Converts an physical address to an HHDM virtual address */
+uintptr_t HHDMPhysToVirt(uintptr_t phys) {
+    return phys + GlobalBootloaderData.hhdm_response->offset;
 }
 
 static PageTable *GetNextLevel(PageTable *current_level, size_t entry) {
     if (!current_level) return nullptr;
 
     if (!current_level->entries[entry].Present) {
-        void *new_entry = Kernel::Mem::AllocatePage();
+        void *new_entry = (void *)HHDMVirtToPhys((uintptr_t)Kernel::Mem::AllocatePage());
         if (!new_entry) return nullptr;
-        if (!is_aligned((uintptr_t)new_entry, 0x1000)) return nullptr;
+        if (!IsAligned((uintptr_t)new_entry, 0x1000)) return nullptr;
 
         current_level->entries[entry].PhysicalAddr = ((uintptr_t)new_entry >> 12);
         current_level->entries[entry].Present = true;
         current_level->entries[entry].RW = true;
 
-        return (PageTable *)new_entry;
-    } else return (PageTable *)(uintptr_t)(current_level->entries[entry].PhysicalAddr << 12);
+        return (PageTable *)HHDMPhysToVirt((uintptr_t)new_entry);
+    } else return (PageTable *)(uintptr_t)HHDMPhysToVirt(current_level->entries[entry].PhysicalAddr << 12);
 }
 
 namespace Kernel::VMM {
@@ -75,8 +88,7 @@ namespace Kernel::VMM {
     
     void InitPaging(
         limine_memmap_response memmap,
-        limine_kernel_address_response kaddr,
-        uintptr_t hhdm_base
+        limine_kernel_address_response kaddr
     ) {
         PageTable *pml4 = (PageTable *)Kernel::Mem::AllocatePage();
         if (!pml4) {
@@ -86,7 +98,6 @@ namespace Kernel::VMM {
         for (size_t i = 0; i < memmap.entry_count; i++) {
             switch (memmap.entries[i]->type) {
                 case LIMINE_MEMMAP_KERNEL_AND_MODULES: {
-                    // Kernel::Log(KERNEL_LOG_DEBUG, "Mapping kernel starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base + kaddr.virtual_base - kaddr.physical_base);
                     for (uintptr_t j = 0; j < memmap.entries[i]->length; j += 4096) {
                         uintptr_t phys = memmap.entries[i]->base + j;
                         uintptr_t virt = phys + kaddr.virtual_base - kaddr.physical_base;
@@ -96,21 +107,10 @@ namespace Kernel::VMM {
                     break;
                 }
 
-                case LIMINE_MEMMAP_USABLE: {
-                    // For the usable memory let's identity map it.
-                    // Kernel::Log(KERNEL_LOG_DEBUG, "Mapping usable memory starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base);
-                    for (uintptr_t j = 0; j < memmap.entries[i]->length; j += 4096) {
-                        MemoryMap(pml4, memmap.entries[i]->base + j, memmap.entries[i]->base + j, false);
-                    }
-
-                    break;
-                }
-
                 default: {
-                    // Kernel::Log(KERNEL_LOG_DEBUG, "Mapping memory starting from 0x%x to 0x%x!\n", memmap.entries[i]->base, memmap.entries[i]->base + hhdm_base);
                     for (uintptr_t j = 0; j < memmap.entries[i]->length; j += 4096) {
                         uintptr_t phys = memmap.entries[i]->base + j;
-                        uintptr_t virt = phys + hhdm_base;
+                        uintptr_t virt = phys + GlobalBootloaderData.hhdm_response->offset;
 
                         MemoryMap(pml4, virt, phys, false);
                     }
@@ -124,6 +124,6 @@ namespace Kernel::VMM {
     }
 
     void LoadKernelCR3() {
-        LoadCR3(kernelPML4);
+        LoadCR3((void *)HHDMVirtToPhys((uintptr_t)kernelPML4));
     }
 }

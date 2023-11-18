@@ -46,9 +46,9 @@ namespace Kernel::Mem {
             Panic("No usable memory was found on the system.");
         }
 
-        FrameList = (struct Page *)LargestEntry->base;
-        uintptr_t nextAddr = ALIGN_UP(LargestEntry->base + (sizeof(Page) * (LargestEntry->length / 0x1000)), 0x1000);
-        FrameListSize = nextAddr - LargestEntry->base;
+        FrameList = (struct Page *)HHDMPhysToVirt(LargestEntry->base);
+        uintptr_t nextAddr = ALIGN_UP((uint64_t)FrameList + (sizeof(Page) * (LargestEntry->length / 0x1000)), 0x1000);
+        FrameListSize = nextAddr - (uint64_t)FrameList;
 
         MemSegSize = LargestEntry->length - FrameListSize;
 

@@ -14,6 +14,8 @@
 #include <logo.h>
 #include <obj/mod.hpp>
 
+LIMINE_BASE_REVISION(1)
+
 /* Global kernel boot loader information state */
 BootloaderData GlobalBootloaderData;
 
@@ -38,7 +40,7 @@ extern "C" void _start()
     Print(System28ASCII());
 
     /* Initialize virtual memory paging */
-    VMM::InitPaging(*GlobalBootloaderData.memmap, *GlobalBootloaderData.kernel_addr, GlobalBootloaderData.hhdm_response->offset);
+    VMM::InitPaging(*GlobalBootloaderData.memmap, *GlobalBootloaderData.kernel_addr);
 
     /* Switch to the kernel's page tables */
     VMM::LoadKernelCR3();
