@@ -90,10 +90,12 @@ namespace Kernel::VMM {
         limine_memmap_response memmap,
         limine_kernel_address_response kaddr
     ) {
-        PageTable *pml4 = (PageTable *)HHDMPhysToVirt((uintptr_t)Kernel::Mem::AllocatePage());
-        if (!pml4) {
-            Panic("Unable to allocate memory for page map.");
+        void *pml4_allocation = Mem::AllocatePage();
+        if (!pml4_allocation) {
+            Panic("Unable to allocate memory for page map.");        
         }
+
+        PageTable *pml4 = (PageTable *)HHDMPhysToVirt((uintptr_t)pml4_allocation);
 
         for (size_t i = 0; i < memmap.entry_count; i++) {
             switch (memmap.entries[i]->type) {

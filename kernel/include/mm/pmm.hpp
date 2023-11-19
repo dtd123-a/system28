@@ -9,6 +9,6 @@
 
 namespace Kernel::Mem {
     void InitializePMM(limine_memmap_response mmap);
-    void* AllocatePage();
+    void *AllocatePage();
     void FreePage(void *addr);
 };
