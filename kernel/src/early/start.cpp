@@ -55,7 +55,7 @@ extern "C" void _start()
     CPU::SetupAllCPUs();
 
     /* Handle any modules passed into the kernel */
-    Obj::HandleModuleObjects(*GlobalBootloaderData.module_response);
+    Obj::HandleModuleObjects(GlobalBootloaderData.module_response);
 
     while (true) {
         CPU::Halt();

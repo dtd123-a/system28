@@ -10,6 +10,7 @@
 #include <mm/mem.hpp>
 #include <hal/vmm.hpp>
 #include <hal/spinlock.hpp>
+#include <terminal/terminal.hpp>
 
 struct PageNode {
     PageNode *next;  
@@ -24,7 +25,7 @@ static void InsertNode(void *page) {
     head.next = node;
 }
 
-void *RemoveNode() {
+static void *RemoveNode() {
     if (head.next) {
         PageNode *ret = head.next;
         head.next = ret->next;

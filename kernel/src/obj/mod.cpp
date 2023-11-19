@@ -21,13 +21,15 @@ namespace Kernel::Obj {
     Lib::Vector<InternalModule> *Modules;
     TarObject *FirstRamdisk;
 
-    void HandleModuleObjects(limine_module_response moduleStructure) {
+    void HandleModuleObjects(limine_module_response *moduleStructure) {
+        if (!moduleStructure) return;
+
         Modules = new Lib::Vector<InternalModule>();
 
-        for (size_t i = 0; i < moduleStructure.module_count; i++) {
-            uintptr_t virtAddr = (uintptr_t)moduleStructure.modules[i]->address;
+        for (size_t i = 0; i < moduleStructure->module_count; i++) {
+            uintptr_t virtAddr = (uintptr_t)moduleStructure->modules[i]->address;
             uintptr_t physAddr = virtAddr - GlobalBootloaderData.hhdm_response->offset;
-            size_t size = moduleStructure.modules[i]->size;
+            size_t size = moduleStructure->modules[i]->size;
 
             for (size_t i = 0; i < size; i += 4096) {
                 VMM::MemoryMap(nullptr, virtAddr + i, physAddr + i, false);
@@ -35,7 +37,7 @@ namespace Kernel::Obj {
 
             Modules->push_back(InternalModule {
                 .VirtualAddress = (void *)virtAddr,
-                .Path = moduleStructure.modules[i]->path,
+                .Path = moduleStructure->modules[i]->path,
             });
         }
 

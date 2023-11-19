@@ -8,5 +8,5 @@
 #include <stddef.h>
 
 namespace Kernel::Obj {
-    void HandleModuleObjects(limine_module_response moduleStructure);
+    void HandleModuleObjects(limine_module_response *moduleStructure);
 }
