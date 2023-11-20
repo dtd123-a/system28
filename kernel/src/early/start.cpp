@@ -33,11 +33,11 @@ extern "C" void _start()
     limine_framebuffer fb = *GlobalBootloaderData.fbData->framebuffers[0];
     Init::InitializeFlanterm((uint32_t *)fb.address, fb.width, fb.height, fb.pitch);
 
-    /* Initialize the Physical Memory Allocator */
-    Mem::InitializePMM(*GlobalBootloaderData.memmap);
-
     /* Print the System/28 splash screen */
     Print(System28ASCII());
+
+    /* Initialize the Physical Memory Allocator */
+    Mem::InitializePMM(*GlobalBootloaderData.memmap);
 
     /* Initialize virtual memory paging */
     VMM::InitPaging(*GlobalBootloaderData.memmap, *GlobalBootloaderData.kernel_addr);

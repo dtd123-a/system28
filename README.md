@@ -1,7 +1,7 @@
 # System/28
 A hobbyist project aiming to create a new workstation operating system with a kernel written completely from scratch.
 
-![Screenshot](https://i.imgur.com/f1oGpuZ.png)
+![Screenshot](https://i.imgur.com/CGUeYNV.png)
 
 ## 📃 Current features:
 - SMP/multiprocessing support
