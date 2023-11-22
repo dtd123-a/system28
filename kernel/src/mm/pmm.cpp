@@ -18,22 +18,29 @@ size_t TotalUsableMemory = 0;
 size_t PagesTracking = 0;
 
 struct PageNode {
-    PageNode *next;  
+    size_t size;
+    PageNode *next;
 };
 
-PageNode head = {.next = 0};
+PageNode head = {.size = 0, .next = 0};
 
-static void InsertNode(void *page) {
-    PageNode *node = (PageNode *)page;
+static void InsertNode(void *block, size_t size) {
+    PageNode *node = (PageNode *)block;
 
+    node->size = size;
     node->next = head.next;
     head.next = node;
 }
 
-static void *RemoveNode() {
+static void *RemovePage() {
     if (head.next) {
         PageNode *ret = head.next;
         head.next = ret->next;
+
+        if (ret->size > 4096) {
+            InsertNode((void *)((uintptr_t)ret + 4096), ret->size - 4096);
+            ret->size = 4096;
+        }
 
         return ret;
     }
@@ -48,10 +55,8 @@ namespace Kernel::Mem {
             switch (mmap.entries[i]->type) {
                 case LIMINE_MEMMAP_USABLE: {
                     TotalUsableMemory += mmap.entries[i]->length;
-                    /* For each page */
-                    for (size_t j = 0; j < mmap.entries[i]->length / 4096; j++) {
-                        PagesTracking++;
-                        InsertNode((void *)HHDMPhysToVirt(mmap.entries[i]->base + (j * 4096)));
+                    if (mmap.entries[i]->length >= 4096) {
+                        InsertNode((void *)HHDMPhysToVirt(mmap.entries[i]->base), mmap.entries[i]->length);
                     }
                 }
             }
@@ -67,7 +72,7 @@ namespace Kernel::Mem {
     void *AllocatePage() {
         SpinlockAquire(&PageAlloc_Lock);
 
-        void *page = RemoveNode();
+        void *page = RemovePage();
         memset(page, 0, 0x1000);
 
         void *ret = (void *)HHDMVirtToPhys((uintptr_t)page);
@@ -82,7 +87,7 @@ namespace Kernel::Mem {
 
         void *virt_page = (void *)HHDMPhysToVirt((uintptr_t)addr);
 
-        InsertNode(virt_page);
+        InsertNode(virt_page, 0x1000);
 
         SpinlockRelease(&PageFree_Lock);
     }
