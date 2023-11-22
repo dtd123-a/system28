@@ -15,7 +15,6 @@
 /* System memory information */
 size_t TotalMemory = 0;
 size_t TotalUsableMemory = 0;
-size_t PagesTracking = 0;
 
 struct PageNode {
     size_t size;
@@ -65,7 +64,6 @@ namespace Kernel::Mem {
         /* Log system memory info */
         Log(KERNEL_LOG_INFO, "[PMM] Total system memory: %d MiB\n", TotalMemory / 1024 / 1024);
         Log(KERNEL_LOG_INFO, "[PMM] Usable system memory: %d MiB\n", TotalUsableMemory / 1024 / 1024);
-        Log(KERNEL_LOG_INFO, "[PMM] Tracking %d physical memory pages\n", PagesTracking);
     }
 
     SPINLOCK_CREATE(PageAlloc_Lock);
