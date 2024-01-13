@@ -18,7 +18,9 @@
 #include <hal/vmm.hpp>
 
 limine_smp_info *SMPData = nullptr;
-uint32_t CPUCoreCount = 0;
+size_t CoreCount = 0;
+size_t CoresInitialized = 1; // 1 == BSP
+
 extern BootloaderData GlobalBootloaderData;
 
 namespace Kernel::CPU {
@@ -39,6 +41,8 @@ namespace Kernel::CPU {
 
         Log(KERNEL_LOG_SUCCESS, "[SMP Stage 3] CPU %d is online and waiting for interrupts.\n", CPUData->processor_id + 1);
 
+        CoresInitialized++;
+
         while (true) {
             CPU::Halt();
         }
@@ -47,8 +51,9 @@ namespace Kernel::CPU {
     void SetupAllCPUs() {
         /* Set up our global SMP state */
         if (!GlobalBootloaderData.smp) Panic("No SMP data provided by the bootloader, please ensure that the IO APIC is available.\n");
+
         SMPData = *GlobalBootloaderData.smp->cpus;
-        CPUCoreCount = GlobalBootloaderData.smp->cpu_count;
+        CoreCount = GlobalBootloaderData.smp->cpu_count;
 
         /* Detects if there is a MADT, sets up MADT state and panics if there is no MADT */
         CPU::InitializeMADT();
@@ -56,32 +61,33 @@ namespace Kernel::CPU {
         Log(KERNEL_LOG_SUCCESS, "[SMP Stage 1] Calibrating Local APIC timer\n");
 
         /* Calibrate the APIC timer*/
-        if (CalibrateTimer()) {
-            Log(KERNEL_LOG_SUCCESS, "[SMP Stage 1] Calibration reported as successful.\n");
-        } else {
+        if (!CalibrateTimer()) {
             Panic("[SMP Stage 1] Was not able to calibrate the APIC timer.\n");
         }
-        
+
+        Log(KERNEL_LOG_SUCCESS, "[SMP Stage 1] Calibration reported as successful.\n");
+
+        /* Disable interrupts for now */
         ClearInterrupts();
 
         Log(KERNEL_LOG_SUCCESS, "[SMP Stage 2] Initializing the APIC\n");
-        /* Set up the Local APIC on the first processor (which we are currently running on) */
+        /* Set up the Local APIC on the current processor */
         CPU::InitializeLAPIC();
         
-        /* If there is more than one CPU, set up each one */
-        if (CPUCoreCount > 1) {
-            Log(KERNEL_LOG_SUCCESS, "[SMP Stage 3] Detected multiple CPUs, instructing them now...\n");
+        if (CoreCount == 1) {
+            /* There's only one CPU, skip SMP setup. */
+            Log(KERNEL_LOG_INFO, "[SMP Stage 3] Using single processor setup.\n");
+        } else {
+            /* This is a multiprocessor system */
+            Log(KERNEL_LOG_SUCCESS, "[SMP Stage 3] Detected multiple CPUs, initializing them now...\n");
 
-            for (uint32_t i = 1; i < CPUCoreCount; i++) {
+            for (size_t i = 1; i < CoreCount; i++) {
                 CPUJump(i, (void *)CPUStartPayload);
             }
-        } else {
-            /* Otherwise, we don't do anything and use the first and only CPU. */
-            Log(KERNEL_LOG_INFO, "[SMP Stage 3] Using single processor setup.\n");
         }
 
         SetInterrupts(); // Interrupts are enabled for the BSP.
-        CPU::InitializeIOAPIC(); // Setup I/O APIC globally.
+        CPU::InitializeIOAPIC();
         
         /*  Acknowledge and discard the last keyboard IRQ 
             in case the user hit a key before the IO APIC 
@@ -89,5 +95,8 @@ namespace Kernel::CPU {
             interrupts "not working".
         */
         IO::inb(0x60);
+
+
+        while (CoresInitialized < CoreCount); // Wait for all CPUs to be initialized before continuing kernel initialization.
     }
 }

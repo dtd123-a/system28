@@ -1,7 +1,7 @@
 # System/28
 A hobbyist project aiming to create a new workstation operating system with a kernel written completely from scratch.
 
-![Screenshot](https://i.imgur.com/gZlcFRv.png)
+![Screenshot](https://i.imgur.com/XZyDAm9.png)
 
 ## 📃 Current features:
 - SMP/multiprocessing support
@@ -13,7 +13,32 @@ A hobbyist project aiming to create a new workstation operating system with a ke
 - Local and I/O APICs in place of 8259 PIC
 - Basic ACPI support (for APICs, reboot, and power info)
 
-## 👨‍💻 External software used:
+## 🔨 Build instructions:
+To build System/28, MacOS or Linux systems are recommended.
+
+**1. Install dependencies**
+- For MacOS (Homebrew):
+    ```
+    $ brew install nasm xorriso x86_64-elf-gcc qemu
+    ```
+- For Ubuntu:
+    ```
+    $ sudo apt install nasm xorriso qemu-system-x86
+    ```
+    Follow guide at [OSDev Wiki](https://wiki.osdev.org/GCC_Cross-Compiler) in order to build x86_64-elf cross toolchain.
+
+**2. Clone repo**
+```
+$ git clone https://github.com/danthedev123/system28
+$ cd system28
+```
+**2. Build & test System/28**
+```
+$ ./bootstrap.sh
+$ make run
+```
+
+## 🌎 External software used:
 - [Limine bootloader & protocol](https://github.com/limine-bootloader/limine)
 - [Flanterm terminal emulator](https://github.com/mintsuki/flanterm)
 

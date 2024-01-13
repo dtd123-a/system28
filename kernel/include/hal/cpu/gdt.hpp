@@ -36,6 +36,5 @@ namespace Kernel::CPU::GDT {
         NOTE: Expects CS selector to be 0x08 and DS selector to be 0x10
     */
     extern "C" void LoadGDT(GDTR *);
-    void Initialize();
     void Load();
 }

@@ -9,7 +9,6 @@
 
 namespace Kernel::CPU {
     void Initialize() {
-        GDT::Initialize();
         GDT::Load();
         Interrupts::Initialize();
         Interrupts::Install();
