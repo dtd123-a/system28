@@ -1,9 +1,9 @@
-
 /*
     * apic.hpp
-    * Implements the local APIC and its timer.
+    * Implements the local APIC and the IO APIC.
     * Created 11/09/23 DanielH
 */
+
 #pragma once
 #include <hal/acpi.hpp>
 
@@ -35,4 +35,5 @@ namespace Kernel::CPU {
     void LAPIC_EOI();
     void TimerReset();
     bool CalibrateTimer();
+    uint32_t GetApicId();
 }

@@ -1,6 +1,6 @@
 /*
-    * lapic.cpp
-    * Implements the local APIC and its timer.
+    * apic.cpp
+    * Implements the Local APIC and the IO APIC.
     * Created 11/09/23 DanielH
 */
 #include <hal/cpu/interrupt/apic.hpp>
@@ -29,6 +29,8 @@ struct {
 } GlobalTimerFlags;
 
 enum LAPICRegisters {
+    /* LAPIC ID register for identifying current processor */
+    LAPIC_ID = 0x20,
     /* End-Of-Interrupt register */
     EOI = 0xB0,
     /* Spurious interrupt register */
@@ -281,5 +283,12 @@ namespace Kernel::CPU {
 
         /* Report success */
         return true;
+    }
+
+    uint32_t GetApicId() {
+        uint32_t val = LAPICRead((void *)LocalAPICBase, LAPIC_ID);
+        uint8_t ID = (val >> 24) & 0xFF;
+
+        return ID;
     }
 }

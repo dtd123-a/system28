@@ -3,6 +3,7 @@
     * Entry (_start)
     * Created 01/09/23 DanielH
 */
+
 #include <early/bootloader_data.hpp>
 #include <terminal/terminal.hpp>
 #include <hal/cpu.hpp>

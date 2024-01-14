@@ -100,7 +100,7 @@ rungdb_uefi: iso
 
 clean:
 	-@rm $(kobj)
-	-@rm kernel.elf -f
+	-@rm -f kernel.elf
 
 bootstrap:
 	@bash bootstrap.sh
