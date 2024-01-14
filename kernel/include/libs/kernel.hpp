@@ -1,7 +1,7 @@
 /*
     * kernel.hpp
     * Implements kernel utility libraries
-    * Created 12/09/23 DanielH
+    * Created 12/09/2023 DanielH
 */
 #pragma once
 #include <hal/cpu/interrupt/idt.hpp>

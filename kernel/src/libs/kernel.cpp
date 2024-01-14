@@ -1,7 +1,7 @@
 /*
     * kernel.cpp
     * Implements kernel utility libraries
-    * Created 12/09/23 DanielH
+    * Created 12/09/2023 DanielH
 */
 #include <terminal/terminal.hpp>
 #include <libs/kernel.hpp>

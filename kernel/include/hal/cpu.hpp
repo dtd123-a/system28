@@ -1,7 +1,7 @@
 /*
     * cpu.hpp
     * Declares/implements CPU abstractions
-    * Created 01/09/23 DanielH
+    * Created 01/09/2023 DanielH
 */
 
 namespace Kernel {

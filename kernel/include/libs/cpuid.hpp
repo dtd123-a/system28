@@ -1,7 +1,7 @@
 /*
     * cpuid.hpp
     * __cpuid wrapper
-    * Created 15/09/23 DanielH
+    * Created 15/09/2023 DanielH
 */
 #pragma once
 #include <stdint.h>

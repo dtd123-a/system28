@@ -1,7 +1,7 @@
 /*
     * gdt.cpp
     * Implements Global Descriptor Table (GDT) for x86_64
-    * Created 02/09/23 DanielH
+    * Created 02/09/2023 DanielH
 */
 
 #include <hal/cpu/gdt.hpp>

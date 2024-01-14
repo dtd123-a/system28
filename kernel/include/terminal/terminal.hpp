@@ -1,7 +1,7 @@
 /*
     * terminal.hpp
     * Declares terminal functions
-    * Created 01/09/23 DanielH
+    * Created 01/09/2023 DanielH
 */
 
 #pragma once

@@ -1,7 +1,7 @@
 /*
     * spinlock.h
     * Spinlock implementation
-    * Created 02/09/23 DanielH
+    * Created 02/09/2023 DanielH
 */
 #pragma once
 

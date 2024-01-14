@@ -1,7 +1,7 @@
 /*
     * apic.cpp
     * Implements the Local APIC and the IO APIC.
-    * Created 11/09/23 DanielH
+    * Created 11/09/2023 DanielH
 */
 #include <hal/cpu/interrupt/apic.hpp>
 #include <hal/acpi.hpp>

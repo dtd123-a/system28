@@ -1,7 +1,7 @@
 /*
     * heap.hpp
     * Implements a heap memory allocator.
-    * Created 16/09/23 DanielH
+    * Created 16/09/2023 DanielH
 */
 #include <stddef.h>
 

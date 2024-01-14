@@ -1,7 +1,7 @@
 /*
     * gdt.cpp
     * Declarations for Global Descriptor Table (GDT)
-    * Created 02/09/23 DanielH
+    * Created 02/09/2023 DanielH
 */
 
 #include <stdint.h>

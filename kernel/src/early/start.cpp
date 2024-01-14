@@ -1,7 +1,7 @@
 /*
     * start.cpp
     * Entry (_start)
-    * Created 01/09/23 DanielH
+    * Created 01/09/2023 DanielH
 */
 
 #include <early/bootloader_data.hpp>

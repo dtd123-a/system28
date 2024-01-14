@@ -1,7 +1,7 @@
 /*
     * acpi.hpp
     * ACPI table handling code
-    * Created 09/09/23
+    * Created 09/09/2023
 */
 #pragma once
 #include <stdint.h>

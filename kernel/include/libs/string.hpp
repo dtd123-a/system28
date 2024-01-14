@@ -1,7 +1,7 @@
 /*
     * string.hpp
     * String handling code
-    * Created 09/09/23
+    * Created 09/09/2023
 */
 #pragma once
 
