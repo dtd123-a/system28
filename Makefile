@@ -55,7 +55,7 @@ kobj = $(kcsourcesnasm:.asm=.o) $(kcsources:.cpp=.o) $(kcsources_c:.c=.o)
 all: $(kbin) limine
 
 limine:
-	@git clone https://github.com/limine-bootloader/limine.git --branch=v5.x-branch-binary --depth=1
+	@git clone https://github.com/limine-bootloader/limine.git --branch=v6.x-branch-binary --depth=1
 	@make -C limine
 
 $(kbin): $(kobj)
