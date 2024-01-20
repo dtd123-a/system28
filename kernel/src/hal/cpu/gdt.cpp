@@ -25,7 +25,6 @@ void InstallGDT() {
     LoadGDT(&GDTPtr); 
 }
 
-
 namespace Kernel::CPU::GDT {
     void Load() {
         InstallGDT();

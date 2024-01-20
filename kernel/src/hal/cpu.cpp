@@ -3,6 +3,7 @@
     * CPU initialization code (architecture specific)
     * Created 02/09/2023 DanielH
 */
+
 #include <hal/cpu/gdt.hpp>
 #include <hal/cpu/interrupt/idt.hpp>
 #include <hal/cpu.hpp>

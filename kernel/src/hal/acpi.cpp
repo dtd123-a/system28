@@ -1,8 +1,9 @@
 /*
     * acpi.cpp
-    * ACPI table handling code
+    * Advanced Configuration and Power Interface basic support
     * Created 09/09/2023
 */
+
 #include <hal/acpi.hpp>
 #include <stdint.h>
 #include <terminal/terminal.hpp>

@@ -3,6 +3,7 @@
     * Spinlock implementation
     * Created 02/09/2023 DanielH
 */
+
 #include <stdatomic.h>
 
 extern void CPUPause();
