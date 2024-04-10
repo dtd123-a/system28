@@ -1,6 +1,6 @@
 /* BSD Zero Clause License */
 
-/* Copyright (C) 2022-2023 mintsuki and contributors.
+/* Copyright (C) 2022-2024 mintsuki and contributors.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted.
@@ -14,8 +14,8 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _LIMINE_H
-#define _LIMINE_H 1
+#ifndef LIMINE_H
+#define LIMINE_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +43,9 @@ extern "C" {
 #  define LIMINE_DEPRECATED_IGNORE_START
 #  define LIMINE_DEPRECATED_IGNORE_END
 #endif
+
+#define LIMINE_REQUESTS_DELIMITER \
+    uint64_t limine_requests_delimiter[2] = { 0xadc0e0531bb10d03, 0x9572709f31764c62 };
 
 #define LIMINE_BASE_REVISION(N) \
     uint64_t limine_base_revision[3] = { 0xf9562b2d5c95a6c8, 0x6a7b384944536bdc, (N) };
@@ -438,6 +441,7 @@ struct limine_kernel_file_request {
 #define LIMINE_MODULE_REQUEST { LIMINE_COMMON_MAGIC, 0x3e7e279702be32af, 0xca1c4f3bd1280cee }
 
 #define LIMINE_INTERNAL_MODULE_REQUIRED (1 << 0)
+#define LIMINE_INTERNAL_MODULE_COMPRESSED (1 << 1)
 
 struct limine_internal_module {
     LIMINE_PTR(const char *) path;
@@ -505,6 +509,24 @@ struct limine_efi_system_table_request {
     uint64_t id[4];
     uint64_t revision;
     LIMINE_PTR(struct limine_efi_system_table_response *) response;
+};
+
+/* EFI memory map */
+
+#define LIMINE_EFI_MEMMAP_REQUEST { LIMINE_COMMON_MAGIC, 0x7df62a431d6872d5, 0xa4fcdfb3e57306c8 }
+
+struct limine_efi_memmap_response {
+    uint64_t revision;
+    LIMINE_PTR(void *) memmap;
+    uint64_t memmap_size;
+    uint64_t desc_size;
+    uint64_t desc_version;
+};
+
+struct limine_efi_memmap_request {
+    uint64_t id[4];
+    uint64_t revision;
+    LIMINE_PTR(struct limine_efi_memmap_response *) response;
 };
 
 /* Boot time */

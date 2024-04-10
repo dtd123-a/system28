@@ -1,7 +1,7 @@
-# System/28
-A hobbyist project aiming to create a new workstation operating system with a kernel written completely from scratch.
+<h1 align="center">System/28</h2>
+A hobby programming project aiming to create a new workstation operating system with a kernel written completely from scratch. The kernel is written in C++, and some C and Assembly.
 
-![Screenshot](https://i.imgur.com/XZyDAm9.png)
+![Screenshot of System/28 kernel monitor](https://i.imgur.com/XZyDAm9.png)
 
 ## 📃 Current features:
 - SMP/multiprocessing support
@@ -42,5 +42,17 @@ $ make run
 - [Limine bootloader & protocol](https://github.com/limine-bootloader/limine)
 - [Flanterm terminal emulator](https://github.com/mintsuki/flanterm)
 
+## 🏅 Miletones:
+- Sep 2, 2023: Physical page frame allocator implemented
+- Sep 2, 2023: SMP working
+- Sep 8, 2023: Virtual memory support working
+- Sep 16, 2023: Heap manager added
+- Sep 26, 2023: ACPI reboot working on real hardware
+- Oct 1, 2023: Ramdisk manager implemented
+- Apr 11, 2024: Milestones added to readme
+
 ## 🕰️ History
-System/28 is a rewrite of [System/14](https://www.github.com/danthedev123/system14_archive), a project I started working on in May 2023. Before that, I had always been interested in OSDev and had also made some crappy projects that could barely do anything. System/14 is the first project that could do scheduling or any real OS functions. I decided to rewrite it for code quality reasons.
+- First commit at September 1st, 2023.
+- System/28 is a rewrite of [System/14](https://www.github.com/danthedev123/system14_archive), a project I started working on in May 2023.
+- System/14 is my first OSDev attempt that got as far as scheduling with processes, with fully original code.
+- The rewrite, System/28, is for codebase quality and maintenance reasons.

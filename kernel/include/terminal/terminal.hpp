@@ -18,7 +18,7 @@ enum KernelLogType {
 
 namespace Kernel {
     namespace Init {
-        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch);
+        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch, int red_mask_size, int red_mask_shift, int green_mask_size, int green_mask_shift, int blue_mask_size, int blue_mask_shift);
     }
 
     void Print(const char* string);

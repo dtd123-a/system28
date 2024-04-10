@@ -7,12 +7,18 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <terminal/terminal.hpp>
-#include <external_libs/flanterm/flanterm.h>
-#include <external_libs/flanterm/backends/fb.h>
+#include <early/bootloader_data.hpp>
+
+/* Flanterm library header files */
+#include "../external_libs/flanterm/backends/fb.h"
+#include "../external_libs/flanterm/flanterm.h"
+
 #include <hal/spinlock.hpp>
 #include <hal/cpu/interrupt/idt.hpp>
 
 flanterm_context* fb_ctx = nullptr;
+
+extern BootloaderData GlobalBootloaderData;
 
 static char* itoa(int num, char* str, int base, int n) {
     if (n == 0) {
@@ -89,8 +95,26 @@ namespace Kernel {
     }
     
     namespace Init {
-        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch) {
-            fb_ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);
+        void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch, int red_mask_size, int red_mask_shift, int green_mask_size, int green_mask_shift, int blue_mask_size, int blue_mask_shift) {
+            /* The flanterm_fb_simple_init has been removed upstream */
+            // fb_ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);
+
+            /* Instead, we use the advanced init function */
+            fb_ctx = flanterm_fb_init(
+                NULL,
+                NULL,
+                framebuffer, width, height, pitch,
+                red_mask_size, red_mask_shift,
+                green_mask_size, green_mask_shift,
+                blue_mask_size, blue_mask_shift,
+                NULL,
+                NULL, NULL,
+                NULL, NULL,
+                NULL, NULL,
+                NULL, 0, 0, 1,
+                0, 0,
+                0
+            );
         }
     }
 
