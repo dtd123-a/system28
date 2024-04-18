@@ -14,18 +14,25 @@ A hobby programming project aiming to create a new workstation operating system 
 - Basic ACPI support (for APICs, reboot, and power info)
 
 ## 🔨 Build instructions:
-To build System/28, MacOS or Linux systems are recommended.
+To build `System/28`, UNIX-like systems are recommended.
 
 **1. Install dependencies**
-- For MacOS (Homebrew):
+- For macOS with Homebrew:
+    - nasm/xorriso/qemu:
     ```
-    $ brew install nasm xorriso x86_64-elf-gcc qemu
+    $ brew install nasm xorriso qemu
     ```
-- For Ubuntu:
+    - Cross compilation toolchain:
+    ```
+    $ brew install x86_64-elf-gcc
+    ```
+- Linux only:
+    Example command for Ubuntu/Debian/Mint (not including the cross compiler):
     ```
     $ sudo apt install nasm xorriso qemu-system-x86
     ```
-    Follow guide at [OSDev Wiki](https://wiki.osdev.org/GCC_Cross-Compiler) in order to build x86_64-elf cross toolchain.
+    - Adjust this command for your distribution's package manager.
+    - If your package manager doesn't ship `x86_64-elf-gcc`, such as in the case of Ubuntu and Debian, follow guide at [OSDev Wiki](https://wiki.osdev.org/GCC_Cross-Compiler) or use Homebrew on Linux **(see Mac instructions above)** in order to install the toolchain.
 
 **2. Clone repo**
 ```
