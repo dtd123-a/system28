@@ -87,6 +87,9 @@ iso: $(kbin)
 	@rm -rf iso_root
 
 run: iso
+	qemu-system-x86_64 $(QEMUFLAGS) -nographic
+
+run_graphic: iso
 	qemu-system-x86_64 $(QEMUFLAGS)
 
 run_uefi: iso

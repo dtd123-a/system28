@@ -6,6 +6,9 @@
 
 #pragma once
 #include <stdint.h>
+#include <hal/debug/serial.hpp>
+
+using namespace Kernel;
 
 enum KernelLogType {
     KERNEL_LOG_SUCCESS,
@@ -19,6 +22,7 @@ enum KernelLogType {
 namespace Kernel {
     namespace Init {
         void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch, int red_mask_size, int red_mask_shift, int green_mask_size, int green_mask_shift, int blue_mask_size, int blue_mask_shift);
+        void SetSerialOutputPort(Debug::SerialPort *port);
     }
 
     void Print(const char* string);

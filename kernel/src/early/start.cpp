@@ -14,6 +14,7 @@
 #include <mm/heap.hpp>
 #include <logo.h>
 #include <obj/mod.hpp>
+#include <hal/debug/serial.hpp>
 
 LIMINE_BASE_REVISION(1)
 
@@ -33,6 +34,9 @@ extern "C" void _start()
     /* Set up the terminal emulator */
     limine_framebuffer fb = *GlobalBootloaderData.fbData->framebuffers[0];
     Init::InitializeFlanterm((uint32_t *)fb.address, fb.width, fb.height, fb.pitch, fb.red_mask_size, fb.red_mask_shift, fb.green_mask_size, fb.green_mask_shift, fb.blue_mask_size, fb.blue_mask_shift);
+    Debug::SerialPort KernelDebugPort = Debug::SerialPort(Debug::COM1); // Get kernel debug output on COM1
+
+    Init::SetSerialOutputPort(&KernelDebugPort);
 
     /* Print the System/28 splash screen */
     Print(System28ASCII());

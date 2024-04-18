@@ -15,8 +15,11 @@
 
 #include <hal/spinlock.hpp>
 #include <hal/cpu/interrupt/idt.hpp>
+#include <hal/debug/serial.hpp>
 
 flanterm_context* fb_ctx = nullptr;
+
+Kernel::Debug::SerialPort *TargetPort = nullptr;
 
 extern BootloaderData GlobalBootloaderData;
 
@@ -91,6 +94,12 @@ namespace Kernel {
     void PutChar(char c) {
         SpinlockAquire(&PutCharLock);
         flanterm_write(fb_ctx, &c, 1);
+        if (TargetPort) {
+            if (c == '\n') {
+                TargetPort->WriteCharacter('\r');
+            }
+            TargetPort->WriteCharacter(c);
+        }
         SpinlockRelease(&PutCharLock);
     }
     
@@ -115,6 +124,10 @@ namespace Kernel {
                 0, 0,
                 0
             );
+        }
+
+        void SetSerialOutputPort(Debug::SerialPort *port) {
+            TargetPort = port;
         }
     }
 
