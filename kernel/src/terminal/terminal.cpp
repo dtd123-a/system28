@@ -106,6 +106,8 @@ namespace Kernel {
     namespace Init {
         void InitializeFlanterm(uint32_t *framebuffer, int width, int height, int pitch, int red_mask_size, int red_mask_shift, int green_mask_size, int green_mask_shift, int blue_mask_size, int blue_mask_shift) {
             /* The flanterm_fb_simple_init has been removed upstream */
+            // fb_ctx = flanterm_fb_simple_init(framebuffer, width, height, pitch);
+
             /* Instead, we use the advanced init function */
             fb_ctx = flanterm_fb_init(
                 NULL,

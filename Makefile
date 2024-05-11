@@ -1,16 +1,14 @@
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-cpp := clang++
-cc := clang
-ld := ld
+cpp := x86_64-elf-g++
+cc := x86_64-elf-gcc
+ld := x86_64-elf-ld
 kbin := kernel.elf
 
 C_CPP_COMMONFLAGS += \
-	-target x86_64-elf \
     -Wall \
     -Wextra \
     -Werror \
-	-Wno-interrupt-service-routine \
     -ffreestanding \
     -fno-stack-protector \
     -fno-stack-check \
@@ -33,8 +31,7 @@ C_CPP_COMMONFLAGS += \
 CPPFLAGS += \
 	-fno-exceptions \
 	-fno-rtti \
-	-fno-use-cxa-atexit \
-	-std=c++17
+	-fno-use-cxa-atexit
 
 LDFLAGS += \
     -nostdlib \
